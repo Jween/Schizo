@@ -30,11 +30,6 @@
             </intent-filter>
         </service>
 
-        <provider
-            android:name=".provider.SchizoContentProvider"
-            android:authorities="schizo"
-            android:enabled="true"
-            android:exported="true"></provider>
     </application>
 
 </manifest>
