@@ -3,6 +3,7 @@ package com.meizu.flyme.schizo.sample.service;
 import android.util.Log;
 
 import com.meizu.flyme.schizo.annotation.API;
+import com.meizu.flyme.schizo.sample.service.bean.Book;
 import com.meizu.flyme.schizo.sample.service.bean.Person;
 import com.meizu.flyme.schizo.service.SchizoService;
 
@@ -16,5 +17,11 @@ public class TestService extends SchizoService {
     Person getPerson(String name) {
         Log.e("SCHIZO", "api person accept request: name is " + name);
         return new Person("Hello", "Schizo");
+    }
+
+
+    @API("book")
+    Book getBook(String title) {
+        return new Book(title, "Nobody");
     }
 }

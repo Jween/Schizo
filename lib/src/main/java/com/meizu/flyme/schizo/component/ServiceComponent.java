@@ -138,13 +138,13 @@ public class ServiceComponent implements Component{
         return GsonConverterFactory.create();
     }
 
-    public final <REQ, RES> Single<RES> process(final REQ request, final Class<RES> responseType) {
+    public final <REQ, RES> Single<RES> process(final String api, final REQ request, final Class<RES> responseType) {
         final StringConverter.Factory factory = getConverterFactory();
         return getInterface()
                 .map(new Function<ISchizoBridgeInterface, SchizoResponse>() {
                     @Override
                     public SchizoResponse apply(ISchizoBridgeInterface iSchizoBridgeInterface) throws Exception {
-                        SchizoRequest schizoRequest = new SchizoRequest("person");
+                        SchizoRequest schizoRequest = new SchizoRequest(api);
                         StringConverter requestConverter = factory.stringConverter(request.getClass());
                         schizoRequest.setBody(requestConverter.toString(request));
                         return iSchizoBridgeInterface.single(schizoRequest);

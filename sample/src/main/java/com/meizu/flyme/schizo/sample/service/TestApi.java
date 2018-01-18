@@ -11,6 +11,7 @@ import com.meizu.flyme.schizo.component.ComponentManager;
 import com.meizu.flyme.schizo.component.ServiceComponent;
 import com.meizu.flyme.schizo.converter.StringConverter;
 import com.meizu.flyme.schizo.sample.constant.Actions;
+import com.meizu.flyme.schizo.sample.service.bean.Book;
 import com.meizu.flyme.schizo.sample.service.bean.Person;
 
 import io.reactivex.Completable;
@@ -34,8 +35,11 @@ public class TestApi {
         ComponentManager.detach(ACTION);
     }
 
-    public static Single<Person> person(final String para1) {
-        return ComponentManager.get(ACTION).process(para1, Person.class);
+    public static Single<Person> person(String para1) {
+        return ComponentManager.get(ACTION).process("person", para1, Person.class);
     }
 
+    public static Single<Book> book(String title) {
+        return ComponentManager.get(ACTION).process("book", title, Book.class);
+    }
 }

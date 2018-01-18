@@ -10,12 +10,14 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.meizu.flyme.schizo.sample.service.TestApi;
+import com.meizu.flyme.schizo.sample.service.bean.Book;
 import com.meizu.flyme.schizo.sample.service.bean.Person;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 
 public class MainActivity extends AppCompatActivity {
+    int counter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,24 +26,35 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//        final ServiceComponent sc = new ServiceComponent(this, Actions.TEST);
-
         TestApi.attach(this);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                TestApi.person("hi")
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<Person>() {
-                            @Override
-                            public void accept(Person person) throws Exception {
-                                Snackbar.make(view,
-                                        "response: Person[" + person.name + " " + person.surname + "]", Snackbar.LENGTH_LONG)
-                                        .setAction("Action", null).show();
-                            }
-                        });
+                if (counter++ % 2 == 0) {
+                    TestApi.person("hi")
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Person>() {
+                                @Override
+                                public void accept(Person person) throws Exception {
+                                    Snackbar.make(view,
+                                            "response: Person[" + person.name + " " + person.surname + "]", Snackbar.LENGTH_LONG)
+                                            .setAction("Action", null).show();
+                                }
+                            });
+                } else {
+                    TestApi.book("logic")
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Book>() {
+                                @Override
+                                public void accept(Book book) throws Exception {
+                                    Snackbar.make(view,
+                                            "response: Book[" + book.getTitle() + " " + book.getAuthor() + "]", Snackbar.LENGTH_LONG)
+                                            .setAction("Action", null).show();
+                                }
+                            });
+                }
             }
         });
     }
