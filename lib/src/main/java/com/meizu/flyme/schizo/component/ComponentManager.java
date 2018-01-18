@@ -4,6 +4,7 @@ import android.content.Context;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 /**
  * Created by Jwn on 2017/9/15.
@@ -11,37 +12,22 @@ import java.util.HashMap;
 
 public class ComponentManager {
 
-    private static HashMap<String, ServiceComponent> singletonMap = new HashMap<>();
-    private static final Object singletonLock = new Object[0];
+    private static Hashtable<String, ServiceComponent> singletonMap = new Hashtable<>();
 
-    public static <T extends ServiceComponent> void attach(Context ctx, Class<T> cls) {
-        try {
-            Constructor<T> cons = cls.getConstructor(Context.class);
-            T instance = cons.newInstance(ctx.getApplicationContext() );
-            synchronized (singletonLock) {
-                singletonMap.put(cls.getName(), instance);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void attach(Context ctx, String action) {
+        ServiceComponent comp = new ServiceComponent(ctx.getApplicationContext(), action);
+        singletonMap.put(action, comp);
     }
 
-    public static <T extends ServiceComponent> void detach(Class<T> cls) {
+    public static void detach(String action) {
         ServiceComponent component;
-        synchronized (singletonLock) {
-            component = singletonMap.remove(cls.getName());
-        }
+        component = singletonMap.remove(action);
         if (component != null) {
             component.unbindService();
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T extends ServiceComponent> T get(Class<T> cls) {
-        T component;
-        synchronized (singletonLock) {
-            component = (T) singletonMap.get(cls.getName());
-        }
-        return component;
+    public static ServiceComponent get(String action) {
+        return singletonMap.get(action);
     }
 }

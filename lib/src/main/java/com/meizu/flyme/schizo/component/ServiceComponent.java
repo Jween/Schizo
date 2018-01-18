@@ -8,11 +8,20 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.meizu.flyme.schizo.ISchizoBridgeInterface;
+import com.meizu.flyme.schizo.SchizoException;
+import com.meizu.flyme.schizo.SchizoRequest;
+import com.meizu.flyme.schizo.SchizoResponse;
+import com.meizu.flyme.schizo.converter.StringConverter;
+import com.meizu.flyme.schizo.converter.gson.GsonConverterFactory;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -31,7 +40,7 @@ public class ServiceComponent implements Component{
 
 
     public ServiceComponent(Context context, String action) {
-        this.context = context.getApplicationContext();
+        this.context = context;
         this.action = action;
     }
 
@@ -64,25 +73,26 @@ public class ServiceComponent implements Component{
     }
 
 
-    public Observable<ISchizoBridgeInterface> getInterface() {
+    public Single<ISchizoBridgeInterface> getInterface() {
         if (isBound()) {
-            return Observable.just(aidl);
+
+            return Single.just(aidl);
         } else {
-            return Observable.create(new ObservableOnSubscribe<ISchizoBridgeInterface>() {
+            final String packageName = context.getPackageName();
+            return Single.create(new SingleOnSubscribe<ISchizoBridgeInterface>() {
                 @Override
-                public void subscribe(@NonNull final ObservableEmitter<ISchizoBridgeInterface> observableEmitter) throws Exception {
+                public void subscribe(@NonNull final SingleEmitter<ISchizoBridgeInterface> singleEmitter) throws Exception {
                     synchronized (boundLock) {
                         Log.i(TAG, "binding service ...");
-                        Intent intent = new Intent(action);
-                        intent.setPackage("com.meizu.flyme.schizo.sample");
+                        Intent intent = new Intent(getAction());
+                        intent.setPackage(packageName);
                         serviceConnection = new ServiceConnection() {
                             @Override
                             public void onServiceConnected(ComponentName componentName, IBinder service) {
                                 Log.i(TAG, "onServiceConnected");
                                 aidl = bindAidlInterfaceOnServiceConnected(componentName, service);
                                 Log.i(TAG, "onServiceConnected end");
-                                observableEmitter.onNext(aidl);
-                                observableEmitter.onComplete();
+                                singleEmitter.onSuccess(aidl);
                             }
 
                             @Override
@@ -99,7 +109,7 @@ public class ServiceComponent implements Component{
 
                         if (!bound) {
                             Log.e(TAG, "Error cant bind to service !");
-                            observableEmitter.onComplete();
+                            singleEmitter.onError(new SchizoException("Schizo cannot bind service with action " + getAction()));
                         }
                     }
                 }
@@ -109,5 +119,52 @@ public class ServiceComponent implements Component{
 
     private ISchizoBridgeInterface bindAidlInterfaceOnServiceConnected(ComponentName componentName, IBinder service) {
         return ISchizoBridgeInterface.Stub.asInterface(service);
+    }
+
+    private StringConverter.Factory converterFactory;
+
+    /* public */ void setConverterFactory(StringConverter.Factory factory) {
+        this.converterFactory = factory;
+    }
+
+    public StringConverter.Factory getConverterFactory() {
+        if (converterFactory == null) {
+            converterFactory = defaultConverterFactory();
+        }
+        return converterFactory;
+    }
+
+    private static StringConverter.Factory defaultConverterFactory() {
+        return GsonConverterFactory.create();
+    }
+
+    public final <REQ, RES> Single<RES> process(final REQ request, final Class<RES> responseType) {
+        final StringConverter.Factory factory = getConverterFactory();
+        return getInterface()
+                .map(new Function<ISchizoBridgeInterface, SchizoResponse>() {
+                    @Override
+                    public SchizoResponse apply(ISchizoBridgeInterface iSchizoBridgeInterface) throws Exception {
+                        SchizoRequest schizoRequest = new SchizoRequest("person");
+                        StringConverter requestConverter = factory.stringConverter(request.getClass());
+                        schizoRequest.setBody(requestConverter.toString(request));
+                        return iSchizoBridgeInterface.single(schizoRequest);
+                    }
+                })
+                .map(new Function<SchizoResponse, RES>() {
+                    @Override
+                    public RES apply(SchizoResponse schizoResponse) throws Exception {
+                        StringConverter responseConverter = factory.stringConverter(responseType);
+                        int responseCode = schizoResponse.getCode();
+                        RES result = null;
+
+                        if (responseCode == SchizoResponse.CODE.SUCCESS) {
+                            result = (RES)responseConverter.fromString(schizoResponse.getBody());
+                        } else {
+                            throw new SchizoException("Schizo Exception Code " + schizoResponse.getCode());
+                        }
+                        return result;
+
+                    }
+                });
     }
 }

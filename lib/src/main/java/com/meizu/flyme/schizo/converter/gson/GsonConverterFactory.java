@@ -29,18 +29,6 @@ public class GsonConverterFactory extends StringConverter.Factory {
         this.gson = gson;
     }
 
-
-//    @Override
-//    public Converter<String, ?> outputConverter(Type type) {
-//        TypeAdapter<?> adapter = this.gson.getAdapter(TypeToken.get(type));
-//        return new GsonOutputConverter(this.gson, adapter);
-//    }
-//
-//    @Override
-//    public Converter<?, String> inputConverter(Type type) {
-//        return new GsonInputConverter(this.gson, type);
-//    }
-
     @Override
     public StringConverter<?> stringConverter(Type type) {
         return new GsonStringConverter<>(gson, type);

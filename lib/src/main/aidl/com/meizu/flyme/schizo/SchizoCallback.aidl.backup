@@ -1,9 +1,0 @@
-// SchizoCallback.aidl
-package com.meizu.flyme.schizo;
-
-import com.meizu.flyme.schizo.SchizoResponse;
-
-interface SchizoCallback {
-
-    void incoming(inout SchizoResponse response);
-}

@@ -5,20 +5,15 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
-import com.meizu.flyme.schizo.ISchizoBridgeInterface;
-import com.meizu.flyme.schizo.SchizoRequest;
-import com.meizu.flyme.schizo.SchizoResponse;
-import com.meizu.flyme.schizo.component.ServiceComponent;
-import com.meizu.flyme.schizo.sample.constant.Actions;
+import com.meizu.flyme.schizo.sample.service.TestApi;
+import com.meizu.flyme.schizo.sample.service.bean.Person;
 
-import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,33 +21,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final ServiceComponent sc = new ServiceComponent(this, Actions.TEST);
+//        final ServiceComponent sc = new ServiceComponent(this, Actions.TEST);
 
+        TestApi.attach(this);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-
-                sc.getInterface()
-                        .map(new Function<ISchizoBridgeInterface, SchizoResponse>() {
-                            @Override
-                            public SchizoResponse apply(ISchizoBridgeInterface iSchizoBridgeInterface) throws Exception {
-                                SchizoRequest request = new SchizoRequest("person");
-                                request.setBody("hi");
-                                return iSchizoBridgeInterface.single(request);
-                            }
-                        })
+                TestApi.person("hi")
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<SchizoResponse>() {
+                        .subscribe(new Consumer<Person>() {
                             @Override
-                            public void accept(SchizoResponse schizoResponse) throws Exception {
-                                Snackbar.make(view, "response: " + schizoResponse.getBody(), Snackbar.LENGTH_LONG)
+                            public void accept(Person person) throws Exception {
+                                Snackbar.make(view,
+                                        "response: Person[" + person.name + " " + person.surname + "]", Snackbar.LENGTH_LONG)
                                         .setAction("Action", null).show();
                             }
                         });

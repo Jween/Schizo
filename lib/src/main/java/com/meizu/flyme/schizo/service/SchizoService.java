@@ -133,9 +133,7 @@ public class SchizoService extends Service {
         }
 
         Log.i(TAG, "List Apis: ");
-        Iterator it = apiMethods.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
+        for (Map.Entry pair : apiMethods.entrySet()) {
             Log.i(TAG, pair.getKey() + " = " + pair.getValue());
 //            System.out.println(pair.getKey() + " = " + pair.getValue());
         }
