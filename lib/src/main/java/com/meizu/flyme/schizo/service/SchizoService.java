@@ -6,11 +6,10 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.meizu.flyme.schizo.ISchizoBridgeInterface;
 import com.meizu.flyme.schizo.SchizoRequest;
 import com.meizu.flyme.schizo.SchizoResponse;
-import com.meizu.flyme.schizo.annotation.API;
+import com.meizu.flyme.schizo.annotation.Api;
 import com.meizu.flyme.schizo.converter.StringConverter;
 import com.meizu.flyme.schizo.converter.gson.GsonConverterFactory;
 
@@ -20,7 +19,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -123,8 +121,8 @@ public class SchizoService extends Service {
             // iterate though the list of methods declared in the class represented by klass variable, and add those annotated with the specified annotation
             final List<Method> allMethods = new ArrayList<Method>(Arrays.asList(klass.getDeclaredMethods()));
             for (final Method method : allMethods) {
-                if (method.isAnnotationPresent(API.class)) {
-                    API annotInstance = method.getAnnotation(API.class);
+                if (method.isAnnotationPresent(Api.class)) {
+                    Api annotInstance = method.getAnnotation(Api.class);
                     apiMethods.put(annotInstance.value(), method);
                 }
             }
