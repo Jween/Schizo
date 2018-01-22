@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.meizu.flyme.schizo.sample.service.TestApi;
+import com.meizu.flyme.schizo.sample.service.TestServiceApi;
 import com.meizu.flyme.schizo.sample.service.bean.Book;
 import com.meizu.flyme.schizo.sample.service.bean.Person;
 
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                 } else {
+
                     TestApi.book("logic")
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Book>() {

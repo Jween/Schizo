@@ -35,4 +35,6 @@ dependencies {
     compile 'com.android.support:design:26.1.0'
     testCompile 'junit:junit:4.12'
     compile project(':lib')
+
+    annotationProcessor project(':processor')
 }
