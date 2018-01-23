@@ -1,9 +1,16 @@
 apply plugin: 'java-library'
 
+sourceSets {
+    main {
+        java.srcDirs += "src/main/references" // 接口
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.squareup:javapoet:1.8.0'
-    compile project(':annotation')
+    implementation project(':annotation')
+//    compile project(':lib')
 }
 
 sourceCompatibility = "1.7"

@@ -1,8 +1,13 @@
 package com.meizu.flyme.schizo.processor;
 
+import android.content.Context;
+
 import com.meizu.flyme.schizo.annotation.Action;
+import com.meizu.flyme.schizo.component.ComponentManager;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
@@ -51,7 +56,7 @@ public class ClientApiProcessor extends AbstractProcessor{
                 return true;
             }
             Action actionAnnotation = element.getAnnotation(Action.class);
-            String action = actionAnnotation.value();
+            String actionValue = actionAnnotation.value();
 
             TypeElement typeElement = (TypeElement) element;
             String serviceClassName = typeElement.getSimpleName().toString();
@@ -68,7 +73,30 @@ public class ClientApiProcessor extends AbstractProcessor{
                     .classBuilder(serviceClassName +"Api")
                     .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
+            // private static final String ACTION = "$targetAction"
+            FieldSpec actionField = FieldSpec.builder(String.class, "ACTION")
+                    .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                    .initializer("$S", actionValue)
+                    .build();
+            apiClass.addField(actionField);
 
+
+            MethodSpec attachMethod = MethodSpec.methodBuilder("attach")
+                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .returns(void.class)
+                    .addParameter(Context.class, "context")
+                    .addStatement("$T.attach(context, ACTION)", ComponentManager.class)
+                    .build();
+            apiClass.addMethod(attachMethod);
+
+            MethodSpec detachMethod = MethodSpec.methodBuilder("detach")
+                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .returns(void.class)
+                    .addStatement("$T.detach(ACTION)", ComponentManager.class)
+                    .build();
+            apiClass.addMethod(detachMethod);
+
+            // write to file
             try {
                 JavaFile.builder(servicePackageName, apiClass.build())
                         .build()
