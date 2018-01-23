@@ -10,10 +10,13 @@ import com.meizu.flyme.schizo.sample.service.bean.Person;
 import io.reactivex.Single;
 
 /**
+ * An example class for annotation generating
+ * Do not touch.
+ *
  * Created by Jwn on 2018/1/18.
  */
-
-public class TestApi {
+@Deprecated
+/* api example class */ class TestApi {
     public static final String ACTION = Actions.TEST;
 
     public static void attach(Context context) {

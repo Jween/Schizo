@@ -9,7 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.meizu.flyme.schizo.sample.service.TestApi;
 import com.meizu.flyme.schizo.sample.service.TestServiceApi;
 import com.meizu.flyme.schizo.sample.service.bean.Book;
 import com.meizu.flyme.schizo.sample.service.bean.Person;
@@ -27,14 +26,14 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        TestApi.attach(this);
+        TestServiceApi.attach(this);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
                 if (counter++ % 2 == 0) {
-                    TestApi.person("hi")
+                    TestServiceApi.person("hi")
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Person>() {
                                 @Override
@@ -46,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
                             });
                 } else {
 
-                    TestApi.book("logic")
+                    TestServiceApi.book("logic")
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Book>() {
                                 @Override
