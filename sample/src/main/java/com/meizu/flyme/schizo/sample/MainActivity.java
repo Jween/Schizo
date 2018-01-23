@@ -32,7 +32,8 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                if (counter++ % 2 == 0) {
+                int ret = counter++;
+                if (ret % 3 == 0) {
                     TestServiceApi.person("hi")
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Person>() {
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
                                             .setAction("Action", null).show();
                                 }
                             });
-                } else {
+                } else if(ret % 3 == 1) {
 
                     TestServiceApi.book("logic")
                             .observeOn(AndroidSchedulers.mainThread())
@@ -52,6 +53,17 @@ public class MainActivity extends AppCompatActivity {
                                 public void accept(Book book) throws Exception {
                                     Snackbar.make(view,
                                             "response: Book[" + book.getTitle() + " " + book.getAuthor() + "]", Snackbar.LENGTH_LONG)
+                                            .setAction("Action", null).show();
+                                }
+                            });
+                } else {
+                    TestServiceApi.book(new Person("Maogan", "Tao"))
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Book>() {
+                                @Override
+                                public void accept(Book book) throws Exception {
+                                    Snackbar.make(view,
+                                            "response: Person -> Book[" + book.getTitle() + " " + book.getAuthor() + "]", Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 }
                             });

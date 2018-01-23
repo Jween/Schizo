@@ -26,4 +26,10 @@ public class TestService extends SchizoService {
     Book getBook(String title) {
         return new Book(title, "Nobody");
     }
+
+
+    @Api("book")
+    Book getBook(Person person) {
+        return new Book(person.name, "Nobody");
+    }
 }

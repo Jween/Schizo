@@ -136,7 +136,7 @@ public class ClientApiProcessor extends AbstractProcessor{
                 apiMethodBuilder.addParameter( requestParameterSpec);
 
                 apiMethodBuilder.addStatement(
-                        "return $T.get(ACTION).process($S, $S, $T.class)",
+                        "return $T.get(ACTION).process($S, $L, $T.class)",
                         ComponentManager.class, apiString, requestParameterSpec.name, argTypeName);
 
                 apiClassBuilder.addMethod(apiMethodBuilder.build());
