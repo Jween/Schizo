@@ -14,11 +14,8 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +32,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -64,7 +60,6 @@ public class ClientApiProcessor extends AbstractProcessor{
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        messager.printMessage(Diagnostic.Kind.WARNING, "ClientApiProcessor is processing.");
         for (Element element : roundEnvironment.getElementsAnnotatedWith(Action.class)) {
             if (element.getKind() != ElementKind.CLASS) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Can be applied to class.");
@@ -96,6 +91,7 @@ public class ClientApiProcessor extends AbstractProcessor{
             apiClassBuilder.addField(actionField);
 
 
+            // generate attach method
             MethodSpec attachMethod = MethodSpec.methodBuilder("attach")
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     .returns(void.class)
@@ -104,6 +100,7 @@ public class ClientApiProcessor extends AbstractProcessor{
                     .build();
             apiClassBuilder.addMethod(attachMethod);
 
+            // generate detach method
             MethodSpec detachMethod = MethodSpec.methodBuilder("detach")
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     .returns(void.class)
@@ -111,7 +108,7 @@ public class ClientApiProcessor extends AbstractProcessor{
                     .build();
             apiClassBuilder.addMethod(detachMethod);
 
-            // get methods annotated with Api.class
+            // generate client api methods based on the service method annotated with Api.class
             Set<ExecutableElement> methodElements = getApiElements(elements, typeElement);
             for (ExecutableElement e : methodElements) {
                 messager.printMessage(Diagnostic.Kind.WARNING, e.toString());
@@ -136,7 +133,6 @@ public class ClientApiProcessor extends AbstractProcessor{
                 }
                 VariableElement requestParameterElement = parameterElements.get(0);
                 ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
-
                 apiMethodBuilder.addParameter( requestParameterSpec);
 
                 apiMethodBuilder.addStatement(
