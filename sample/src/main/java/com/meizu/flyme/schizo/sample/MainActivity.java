@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                 } else {
-                    TestServiceApi.book(new Person("Maogan", "Tao"))
+                    TestServiceApi.book1(new Person("Maogan", "Tao"))
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Book>() {
                                 @Override

@@ -18,7 +18,7 @@ public class TestService extends SchizoService {
 
     @Api("person")
     Person getPerson(String name) {
-        Log.e("SCHIZO", "api person accept request: name is " + name);
+        Log.i("SCHIZO", "api person accept request: name is " + name);
         return new Person("Hello", "Schizo");
     }
 
@@ -28,8 +28,9 @@ public class TestService extends SchizoService {
     }
 
 
-    @Api("book")
+    @Api("book1")
     Book getBook(Person person) {
+        Log.i("SCHIZO", "Person is [" + person.name + ",,," + person.surname + "]");
         return new Book(person.name, "Nobody");
     }
 }
