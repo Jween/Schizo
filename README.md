@@ -94,9 +94,9 @@ public final class TestServiceApi {
 * `detach()`: 释放该进程模块
 * `person(String)`, `book(String)`, `book1(Person)`: 根据 `@Api` 自动生成的调用接口, 供客户端调用
 
-## 任务拆解
+## 里程碑与任务拆解
 
-+ 协议与协议: 请求(bean) -> 协议(json) -> 传输(aidl, string) -> 协议(json) -> 响应(bean)
++ 协议与传输: 请求(bean) -> 协议(json) -> 传输(aidl, string) -> 协议(json) -> 响应(bean)
     + 传输层可定制, 未来改成 byte array 或者 byte string
     + 协议层可定制, 当前使用 json
     + 请求与协议可定制, 当前使用 gson
@@ -104,9 +104,9 @@ public final class TestServiceApi {
     + 封装 aidl
     + 分发和管理请求
     + 接口注入
-    + 多线程处理(待实现)
+    + 多线程处理(基于 RxJava 2.x)
 + 客户: 使用者可以是任何模块
-    + 组件:客户端的 aidl 封装, RxJava 封装
+    + 组件: 客户端的 aidl 封装, RxJava 封装
     + 组件管理: 根据 action + api + parameters 定位组件, 沟通服务
 
 + 编译
