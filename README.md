@@ -44,7 +44,7 @@ public class TestService extends SchizoService {
 ````
 
 * 每一个 `@Api` 注解的方法, 对应于一个接口
-* 同一个接口的不同版本, Api 改个名字就可以兼容
+* 同一个接口的不同版本, Api 改个名字例如 book/book1
 
 **AndroidManifest.xml**
 
