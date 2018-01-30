@@ -20,7 +20,7 @@
 **TestService.java**
 
 ````
-@Action("com.meizu.flyme.schizo.test1")
+@Action("io.jween.schizo.test1")
 public class TestService extends SchizoService {
 
     @Api("person")
@@ -54,19 +54,19 @@ public class TestService extends SchizoService {
         android:exported="false"
         android:process=":net" >
         <intent-filter>
-            <action android:name="com.meizu.flyme.schizo.test1" />
+            <action android:name="io.jween.schizo.test1" />
         </intent-filter>
     </service>
 ````
 
 * `android:process=":net"`: 指定进程名
-* `<action android:name="com.meizu.flyme.schizo.test1" />`: 指定 Action, `@Action` 通过这个来定位接口类.
+* `<action android:name="io.jween.schizo.test1" />`: 指定 Action, `@Action` 通过这个来定位接口类.
 
 #### 示例(自动生成): 客户端 TestServiceApi (框架自动生成如下客户端调用接口)
 
 ````
 public final class TestServiceApi {
-  private static final String ACTION = "com.meizu.flyme.schizo.test1";
+  private static final String ACTION = "io.jween.schizo.test1";
 
   public static void attach(Context context) {
     ComponentManager.attach(context, ACTION);

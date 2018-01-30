@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.meizu.flyme.schizo.sample">
+    package="io.jween.schizo.sample">
 
     <application
         android:name=".app.SchizoApplication"
@@ -26,7 +26,7 @@
             android:exported="false"
             android:process=":net" >
             <intent-filter>
-                <action android:name="com.meizu.flyme.schizo.test1" />
+                <action android:name="io.jween.schizo.test1" />
             </intent-filter>
         </service>
 
