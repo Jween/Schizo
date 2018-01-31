@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 26
@@ -22,17 +23,127 @@ android {
 
 }
 
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
+import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
+import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
+
+class AarCopyAction implements CopyAction {
+
+    private final File archiveFile;
+
+    public AarCopyAction(File archiveFile) {
+        this.archiveFile = archiveFile
+    }
+
+    public WorkResult execute(CopyActionProcessingStream stream) {
+        FileCopyDetailsInternalAction action = new FileCopyDetailsInternalAction();
+        stream.process(action);
+        return new SimpleWorkResult(action.didWork);
+    }
+
+    private class FileCopyDetailsInternalAction implements CopyActionProcessingStreamAction {
+        private boolean didWork;
+
+        private FileCopyDetailsInternalAction() {
+        }
+
+        public void processFile(FileCopyDetailsInternal details) {
+            boolean copied = details.copyTo(archiveFile);
+            if(copied) {
+                this.didWork = true;
+            }
+
+        }
+    }
+}
+
+class Aar extends AbstractArchiveTask {
+    public static final String AAR_EXTENSION = "aar";
+
+    public Aar() {
+        this.setExtension(AAR_EXTENSION);
+    }
+
+    @Override
+    protected CopyAction createCopyAction() {
+        new AarCopyAction(getArchivePath())
+    }
+}
+
+publishing {
+    publications {
+        // Create different publications for each variants
+        project.android.libraryVariants.all { variant ->
+
+            println "Variant::::::::" + variant.name
+
+            def aarTask = project.task("copy${variant.name.capitalize()}Aar", type: Aar, dependsOn: variant.assemble) {
+                from "${project.buildDir}${File.separator}outputs${File.separator}aar${File.separator}${project.getName()}-release.aar"
+            }
+
+            // Dynamically creating publications name
+            "${variant.name}Aar"(MavenPublication) {
+
+//                def manifest = new XmlSlurper().parse(project.android.sourceSets.main.manifest.srcFile);
+//                def libVersion = manifest['@android:versionName'].text()
+                def artifactName = 'schizo'
+
+                // Artifact properties
+                groupId schizo.group
+                version = schizo.version
+                artifactId variant.name == 'debug' ? artifactName + '-dev' : artifactName
+
+                // Tell maven to prepare the generated "*.aar" file for publishing
+                // artifact("$buildDir/outputs/aar/${project.getName()}-${variant.name}.aar")
+                artifact(aarTask)
+
+                pom.withXml {
+                    //Creating additional node for dependencies
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    // Defining configuration names from which dependencies will be taken (debugCompile or releaseCompile and compile)
+                    def configurationNames = ["${variant.name}Implementation", 'implementation']
+
+                    configurationNames.each { configurationName ->
+                        configurations[configurationName].allDependencies.each {
+                            if (it.group != null && it.name != null) {
+                                def dependencyNode = dependenciesNode.appendNode('dependency')
+                                dependencyNode.appendNode('groupId', it.group)
+                                dependencyNode.appendNode('artifactId', it.name)
+                                dependencyNode.appendNode('version', it.version)
+
+                                //If there are any exclusions in dependency
+                                if (it.excludeRules.size() > 0) {
+                                    def exclusionsNode = dependencyNode.appendNode('exclusions')
+                                    it.excludeRules.each { rule ->
+                                        def exclusionNode = exclusionsNode.appendNode('exclusion')
+                                        exclusionNode.appendNode('groupId', rule.group)
+                                        exclusionNode.appendNode('artifactId', rule.module)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.8'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
+    implementation 'com.google.code.gson:gson:2.8.2'
 
-    compile 'com.google.code.gson:gson:2.8.2'
-
-    compile project(':annotation')
+//    implementation project(':annotation')
+    implementation 'io.jween.schizo:annotation:0.1'
 }

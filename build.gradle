@@ -15,6 +15,7 @@ buildscript {
 
 allprojects {
     repositories {
+        mavenLocal()
         jcenter()
         google()
     }
@@ -22,4 +23,13 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+buildscript {
+    rootProject.ext {
+        schizo = [:]
+        schizo.group = "io.jween.schizo"
+        schizo.id = "schizo"
+        schizo.version = "0.1"
+    }
 }

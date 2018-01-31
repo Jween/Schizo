@@ -1,4 +1,22 @@
-apply plugin: 'java-library'
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+//
+//def gradleProperties = new Properties()
+//file("build.properties").withInputStream { props.load(it) }
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId schizo.group
+            version schizo.version
+            artifactId 'annotation'
+
+            from components.java
+        }
+    }
+}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

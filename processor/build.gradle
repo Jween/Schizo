@@ -1,4 +1,5 @@
-apply plugin: 'java-library'
+apply plugin: 'java'
+apply plugin: 'maven-publish'
 
 sourceSets {
     main {
@@ -6,11 +7,28 @@ sourceSets {
     }
 }
 
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId schizo.group
+            version schizo.version
+            artifactId 'processor'
+
+            from components.java
+
+            pom.withXml {
+                asNode().appendNode('description',
+                        'Schizo annotations for IPC library schizo.')
+            }
+        }
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.squareup:javapoet:1.8.0'
-    implementation project(':annotation')
-//    compile project(':lib')
+    implementation 'com.squareup:javapoet:1.8.0'
+    implementation 'io.jween.schizo:annotation:0.1'
 }
 
 sourceCompatibility = "1.7"
