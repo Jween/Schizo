@@ -1,3 +1,7 @@
+plugins {
+    id "com.jfrog.bintray" version "1.8.0"
+}
+
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
@@ -7,23 +11,57 @@ sourceSets {
     }
 }
 
-
+String prjName = 'processor'
+String prjDesc = 'Schizo processor for the IPC library Schizo which is a simple IPC library for android.'
 publishing {
     publications {
         maven(MavenPublication) {
             groupId schizo.group
             version schizo.version
-            artifactId 'processor'
+            artifactId prjName
 
             from components.java
 
             pom.withXml {
-                asNode().appendNode('description',
-                        'Schizo annotations for IPC library schizo.')
+                def root = asNode()
+                root.appendNode('description', prjDesc)
+                root.appendNode('name', "${schizo.group}:$prjName")
+
+                root.children().last() + schizo.pomConfig
             }
         }
     }
 }
+
+bintray {
+    user = schizo.bintray.user
+    key = schizo.bintray.apiKey
+
+    publications = ['maven']
+
+    pkg {
+        repo = 'maven'
+        name = "${schizo.group}:$prjName"
+        userOrg = schizo.bintray.user
+        licenses = ['Apache-2.0']
+        websiteUrl = schizo.siteUrl
+        vcsUrl = schizo.gitUrl
+        labels = ['schizo', prjName]
+        version {
+            name = schizo.version
+            desc = prjDesc
+            released  = new Date()
+            vcsTag = "${schizo.version}"
+            attributes = ['android-library': 'io.jween:io.jween.schizo:schizo']
+
+            gpg {
+                sign = true
+                passphrase = schizo.bintray.passphrase
+            }
+        }
+    }
+}
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

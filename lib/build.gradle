@@ -1,3 +1,7 @@
+plugins {
+    id "com.jfrog.bintray" version "1.8.0"
+}
+
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
@@ -73,34 +77,73 @@ class Aar extends AbstractArchiveTask {
     }
 }
 
+
+
+String prjName = 'schizo'
+String prjDesc = 'Schizo is a simple IPC library for android.'
+
 publishing {
     publications {
-        // Create different publications for each variants
         project.android.libraryVariants.all { variant ->
 
-            println "Variant::::::::" + variant.name
+            // Javadocs task
+            def javadocsTask, javadocsJarTask
+            javadocsTask = project.task("${variant.name}Javadocs", type: Javadoc, dependsOn: variant.javaCompile) {
+                source = variant.javaCompile.source
+                def androidJar = "${project.android.sdkDirectory}${File.separator}platforms${File.separator}${project.android.compileSdkVersion}${File.separator}android.jar"
+                classpath = project.files(variant.javaCompile.classpath.files, androidJar)
+                options {
+                    charSet = 'UTF-8'
+                    encoding = 'UTF-8'
+                    links "http://docs.oracle.com/javase/8/docs/api/"
+                    linksOffline "http://d.android.com/reference", "${project.android.sdkDirectory}${File.separator}docs${File.separator}reference"
+                }
+                exclude '**/BuildConfig.java'
+                exclude '**/R.java'
+            }
 
-            def aarTask = project.task("copy${variant.name.capitalize()}Aar", type: Aar, dependsOn: variant.assemble) {
+            javadocsJarTask = project.task("${variant.name}JavadocsJar", type: Jar, dependsOn: javadocsTask) {
+                classifier = 'javadoc'
+                from javadocsTask.destinationDir
+            }
+
+            // Sources jar task
+            def sourcesJarTask = project.task("${variant.name}SourcesJar", type: Jar) {
+                classifier = 'sources'
+                from variant.javaCompile.source
+            }
+
+
+            // Jar task
+//            def jarTask = project.task("androidReleaseJar", type: Jar, dependsOn: variant.assemble) {
+//                from "$project.buildDir/intermediates/classes/release/"
+//                exclude '**/BuildConfig.class'
+//                exclude '**/R.class'
+//                exclude '**/R$*.class'
+//            }
+
+            // Aar task
+            def aarTask = project.task("${variant.name}Aar", type: Aar, dependsOn: variant.assemble) {
                 from "${project.buildDir}${File.separator}outputs${File.separator}aar${File.separator}${project.getName()}-release.aar"
             }
 
             // Dynamically creating publications name
-            "${variant.name}Aar"(MavenPublication) {
-
-//                def manifest = new XmlSlurper().parse(project.android.sourceSets.main.manifest.srcFile);
-//                def libVersion = manifest['@android:versionName'].text()
-                def artifactName = 'schizo'
-
+            "${variant.name}Maven"(MavenPublication) {
                 // Artifact properties
                 groupId schizo.group
                 version = schizo.version
-                artifactId variant.name == 'debug' ? artifactName + '-dev' : artifactName
+                artifactId variant.name == 'debug' ? prjName + '-beta' : prjName
 
-                // Tell maven to prepare the generated "*.aar" file for publishing
-                // artifact("$buildDir/outputs/aar/${project.getName()}-${variant.name}.aar")
+                // publish the artifacts required by bintray.(http://central.sonatype.org/pages/requirements.html)
                 artifact(aarTask)
+                artifact(javadocsJarTask)
+                artifact(sourcesJarTask)
 
                 pom.withXml {
+                    def root = asNode()
+                    root.appendNode('description', prjDesc)
+                    root.appendNode('name', "${schizo.group}:$prjName")
+
                     //Creating additional node for dependencies
                     def dependenciesNode = asNode().appendNode('dependencies')
 
@@ -127,11 +170,44 @@ publishing {
                             }
                         }
                     }
+
+
+                    root.children().last() + schizo.pomConfig
                 }
             }
         }
     }
 }
+
+bintray {
+    user = schizo.bintray.user
+    key = schizo.bintray.apiKey
+
+    publications = ['releaseMaven']
+
+    pkg {
+        repo = 'maven'
+        name = "${schizo.group}:$prjName"
+        userOrg = schizo.bintray.user
+        licenses = ['Apache-2.0']
+        websiteUrl = schizo.siteUrl
+        vcsUrl = schizo.gitUrl
+        labels = ['schizo']
+        version {
+            name = schizo.version
+            desc = prjDesc
+            released  = new Date()
+            vcsTag = "${schizo.version}"
+            attributes = ['android-library': 'io.jween:io.jween.schizo:schizo']
+
+            gpg {
+                sign = true
+                passphrase = schizo.bintray.passphrase
+            }
+        }
+    }
+}
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

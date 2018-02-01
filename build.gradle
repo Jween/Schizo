@@ -26,10 +26,46 @@ task clean(type: Delete) {
 }
 
 buildscript {
+    Properties localProp = new Properties()
+    localProp.load(project.rootProject.file('local.properties').newDataInputStream())
+
     rootProject.ext {
         schizo = [:]
         schizo.group = "io.jween.schizo"
         schizo.id = "schizo"
         schizo.version = "0.1"
+        schizo.siteUrl = "https://github.com/Jween/Schizo"
+        schizo.gitUrl = "https://github.com/Jween/Schizo.git"
+
+        schizo.bintray = [:]
+        schizo.bintray.user = localProp.get('bintray.user')
+        schizo.bintray.apiKey = localProp.get('bintray.apiKey')
+        schizo.bintray.passphrase = localProp.get('bintray.passphrase')
+
+        // Create the pom configuration:
+        schizo.pomConfig = {
+            url schizo.siteUrl
+
+            licenses {
+                license {
+                    name "The Apache Software License, Version 2.0"
+                    url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    distribution "repo"
+                }
+            }
+            developers {
+                developer {
+                    id "Jween"
+                    name "Jween Lau"
+                    email "JweenLau@gmail.com"
+                }
+            }
+
+            scm {
+                url schizo.siteUrl
+                connection schizo.gitUrl
+                developerConnection schizo.gitUrl
+            }
+        }
     }
 }
