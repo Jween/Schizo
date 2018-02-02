@@ -36,6 +36,7 @@ buildscript {
         schizo.version = "0.1"
         schizo.siteUrl = "https://github.com/Jween/Schizo"
         schizo.gitUrl = "https://github.com/Jween/Schizo.git"
+        schizo.issueTrackerUrl = "https://github.com/Jween/Schizo/issues"
 
         schizo.bintray = [:]
         schizo.bintray.user = localProp.get('bintray.user')
@@ -49,7 +50,7 @@ buildscript {
             licenses {
                 license {
                     name "The Apache Software License, Version 2.0"
-                    url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    url "http://www.jween.io/licenses/APACHE-LICENSE-2.0.md"
                     distribution "repo"
                 }
             }

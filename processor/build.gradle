@@ -57,11 +57,14 @@ bintray {
     pkg {
         repo = 'maven'
         name = "${schizo.group}:$prjName"
+        desc = prjDesc
         userOrg = schizo.bintray.user
         licenses = ['Apache-2.0']
         websiteUrl = schizo.siteUrl
         vcsUrl = schizo.gitUrl
+        issueTrackerUrl = schizo.issueTrackerUrl
         labels = ['schizo', prjName]
+        publish = true
         version {
             name = schizo.version
             desc = prjDesc

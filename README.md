@@ -131,3 +131,9 @@ implementation 'com.google.code.gson:gson:2.8.2'
 + 编译
     + 根据服务器实现的接口注入(API), 自动生成客户端调用代码(待实现, 目前手动, 见 sample 模块示例)
     + 自动处理依赖关系(待实现)
+
+
+## License
+
+Schizo 基于 Apache-2.0 协议开源, 协议详情参见 [LICENSE](LICENSE.md)     
+See the [LICENSE](LICENSE.md) file for license rights and limitations (APACHE-2.0).   
