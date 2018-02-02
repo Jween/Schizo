@@ -7,6 +7,18 @@ apply plugin: 'maven-publish'
 
 String prjName = 'annotation'
 String prjDesc = 'The annotations used by Schizo implementations. Schizo is a simple IPC library for android. '
+
+
+task packageSourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier "sources"
+}
+
+task packageJavadoc(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -15,11 +27,14 @@ publishing {
             artifactId prjName
 
             from components.java
+            artifact packageSourceJar
+            artifact packageJavadoc
 
             pom.withXml {
                 def root = asNode()
-                root.appendNode('description', prjDesc)
                 root.appendNode('name', "${schizo.group}:$prjName")
+                root.appendNode('packaging', 'jar')
+                root.appendNode('description', prjDesc)
 
                 root.children().last() + schizo.pomConfig
             }

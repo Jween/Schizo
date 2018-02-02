@@ -87,40 +87,35 @@ publishing {
         project.android.libraryVariants.all { variant ->
 
             // Javadocs task
-            def javadocsTask, javadocsJarTask
+            def javadocsTask
             javadocsTask = project.task("${variant.name}Javadocs", type: Javadoc, dependsOn: variant.javaCompile) {
                 source = variant.javaCompile.source
                 def androidJar = "${project.android.sdkDirectory}${File.separator}platforms${File.separator}${project.android.compileSdkVersion}${File.separator}android.jar"
-                classpath = project.files(variant.javaCompile.classpath.files, androidJar)
+                def aidlFile = project.files("$project.buildDir/generated/source/aidl/$variant.name/")
+                classpath = project.files(variant.javaCompile.classpath.files, androidJar, aidlFile)
                 options {
                     charSet = 'UTF-8'
                     encoding = 'UTF-8'
                     links "http://docs.oracle.com/javase/8/docs/api/"
-                    linksOffline "http://d.android.com/reference", "${project.android.sdkDirectory}${File.separator}docs${File.separator}reference"
+//                    linksOffline "http://d.android.com/reference", "${project.android.sdkDirectory}${File.separator}docs${File.separator}reference"
                 }
+                failOnError false
                 exclude '**/BuildConfig.java'
                 exclude '**/R.java'
+                exclude '**/ISchizoBridgeInterface.java'
             }
 
-            javadocsJarTask = project.task("${variant.name}JavadocsJar", type: Jar, dependsOn: javadocsTask) {
+            def javadocsJarTask = project.task("${variant.name}JavadocsJar", type: Jar, dependsOn: javadocsTask) {
                 classifier = 'javadoc'
                 from javadocsTask.destinationDir
             }
+
 
             // Sources jar task
             def sourcesJarTask = project.task("${variant.name}SourcesJar", type: Jar) {
                 classifier = 'sources'
                 from variant.javaCompile.source
             }
-
-
-            // Jar task
-//            def jarTask = project.task("androidReleaseJar", type: Jar, dependsOn: variant.assemble) {
-//                from "$project.buildDir/intermediates/classes/release/"
-//                exclude '**/BuildConfig.class'
-//                exclude '**/R.class'
-//                exclude '**/R$*.class'
-//            }
 
             // Aar task
             def aarTask = project.task("${variant.name}Aar", type: Aar, dependsOn: variant.assemble) {
@@ -141,8 +136,9 @@ publishing {
 
                 pom.withXml {
                     def root = asNode()
-                    root.appendNode('description', prjDesc)
                     root.appendNode('name', "${schizo.group}:$prjName")
+//                    root.appendNode('packaging', 'aar')
+                    root.appendNode('description', prjDesc)
 
                     //Creating additional node for dependencies
                     def dependenciesNode = asNode().appendNode('dependencies')

@@ -1,11 +1,18 @@
 # Schizo
 
-一个超屌的多进程框架, 正处于开发阶段
+一个简洁的多进程框架, 正处于开发阶段
 
 
 ## 使用
 
+#### build.gradle
 
+````groovy
+annotationProcessor 'io.jween.schizo:processor:0.1'
+implementation 'io.jween.schizo:schizo:0.1'
+````
+
+#### 代码
 
 1. 继承 `SchizoService`
 2. `@Action` 注解用于 Service, 值指定为可以调起该 Service 的 action
@@ -15,7 +22,9 @@
 
 自动生成的接口类为 `TestServiceApi` (Service 的类名 + Api)
 
-##### 示例: 服务端 TestService (该模块开发者提供服务)
+## 示例: 
+
+#### 服务端 TestService (该模块开发者提供服务)
 
 **TestService.java**
 
@@ -44,7 +53,7 @@ public class TestService extends SchizoService {
 ````
 
 * 每一个 `@Api` 注解的方法, 对应于一个接口
-* 同一个接口的不同版本, Api 改个名字例如 book/book1
+* 同一个接口的不同版本, Api 改个名字例如 book接口 的兼容版本 book1
 
 **AndroidManifest.xml**
 
@@ -62,7 +71,7 @@ public class TestService extends SchizoService {
 * `android:process=":net"`: 指定进程名
 * `<action android:name="io.jween.schizo.test1" />`: 指定 Action, `@Action` 通过这个来定位接口类.
 
-#### 示例(自动生成): 客户端 TestServiceApi (框架自动生成如下客户端调用接口)
+#### 客户端 TestServiceApi (框架自动生成)
 
 ````
 public final class TestServiceApi {
@@ -94,6 +103,16 @@ public final class TestServiceApi {
 * `detach()`: 释放该进程模块
 * `person(String)`, `book(String)`, `book1(Person)`: 根据 `@Api` 自动生成的调用接口, 供客户端调用
 
+## 自动依赖
+
+schizo 库的多线程处理, 以及接口返回是响应式的, 协议封装与解析暂时使用 gson
+
+````groovy
+implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
+implementation 'com.google.code.gson:gson:2.8.2'
+````
+    
 ## 里程碑与任务拆解
 
 + 协议与传输: 请求(bean) -> 协议(json) -> 传输(aidl, string) -> 协议(json) -> 响应(bean)

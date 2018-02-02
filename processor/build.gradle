@@ -13,6 +13,18 @@ sourceSets {
 
 String prjName = 'processor'
 String prjDesc = 'Schizo processor for the IPC library Schizo which is a simple IPC library for android.'
+
+
+task packageSourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier "sources"
+}
+
+task packageJavadoc(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -21,11 +33,14 @@ publishing {
             artifactId prjName
 
             from components.java
+            artifact packageSourceJar
+            artifact packageJavadoc
 
             pom.withXml {
                 def root = asNode()
-                root.appendNode('description', prjDesc)
                 root.appendNode('name', "${schizo.group}:$prjName")
+                root.appendNode('packaging', 'jar')
+                root.appendNode('description', prjDesc)
 
                 root.children().last() + schizo.pomConfig
             }
@@ -69,5 +84,5 @@ dependencies {
     implementation 'io.jween.schizo:annotation:0.1'
 }
 
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
+//sourceCompatibility = "1.7"
+//targetCompatibility = "1.7"

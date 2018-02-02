@@ -35,8 +35,8 @@ dependencies {
     compile 'com.android.support:design:26.1.0'
     testCompile 'junit:junit:4.12'
 //    compile project(':lib')
-    implementation 'io.jween.schizo:schizo:0.1'
-
 //    annotationProcessor project(':processor')
     annotationProcessor 'io.jween.schizo:processor:0.1'
+    implementation 'io.jween.schizo:schizo:0.1'
+
 }
