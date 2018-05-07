@@ -128,17 +128,21 @@ public class ClientApiProcessor extends AbstractProcessor{
 
                 List<? extends VariableElement> parameterElements = e.getParameters();
                 if (parameterElements.size() < 1) {
-                    messager.printMessage(Diagnostic.Kind.ERROR,
-                            "Method " + e.getSimpleName() + " missing request parameter");
+//                    messager.printMessage(Diagnostic.Kind.ERROR,
+//                            "Method " + e.getSimpleName() + " missing request parameter");
+
+                    apiMethodBuilder.addStatement(
+                            "return $T.get(ACTION).process($S, $L, $T.class)",
+                            ComponentManager.class, apiString, "null", argTypeName);
+                } else {
+                    VariableElement requestParameterElement = parameterElements.get(0);
+                    ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
+                    apiMethodBuilder.addParameter(requestParameterSpec);
+
+                    apiMethodBuilder.addStatement(
+                            "return $T.get(ACTION).process($S, $L, $T.class)",
+                            ComponentManager.class, apiString, requestParameterSpec.name, argTypeName);
                 }
-                VariableElement requestParameterElement = parameterElements.get(0);
-                ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
-                apiMethodBuilder.addParameter( requestParameterSpec);
-
-                apiMethodBuilder.addStatement(
-                        "return $T.get(ACTION).process($S, $L, $T.class)",
-                        ComponentManager.class, apiString, requestParameterSpec.name, argTypeName);
-
                 apiClassBuilder.addMethod(apiMethodBuilder.build());
             }
 

@@ -33,4 +33,9 @@ public class TestService extends SchizoService {
         Log.i("SCHIZO", "Person is [" + person.name + ",,," + person.surname + "]");
         return new Book(person.name, "Nobody");
     }
+
+    @Api("noParameter")
+    String getNothing() {
+        return "Nothing!";
+    }
 }

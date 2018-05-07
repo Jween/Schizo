@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final View view) {
                 int ret = counter++;
-                if (ret % 3 == 0) {
+                if (ret % 4 == 0) {
                     TestServiceApi.person("hi")
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Person>() {
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
                                             .setAction("Action", null).show();
                                 }
                             });
-                } else if(ret % 3 == 1) {
+                } else if(ret % 4 == 1) {
 
                     TestServiceApi.book("logic")
                             .observeOn(AndroidSchedulers.mainThread())
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
                                             .setAction("Action", null).show();
                                 }
                             });
-                } else {
+                } else if(ret % 4 == 2) {
                     TestServiceApi.book1(new Person("Maogan", "Tao"))
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Book>() {
@@ -64,6 +64,17 @@ public class MainActivity extends AppCompatActivity {
                                 public void accept(Book book) throws Exception {
                                     Snackbar.make(view,
                                             "response: Person -> Book[" + book.getTitle() + " " + book.getAuthor() + "]", Snackbar.LENGTH_LONG)
+                                            .setAction("Action", null).show();
+                                }
+                            });
+                } else {
+                    TestServiceApi.noParameter()
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<String>() {
+                                @Override
+                                public void accept(String s) throws Exception {
+                                    Snackbar.make(view,
+                                            "response: noParameters -> " + s, Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 }
                             });

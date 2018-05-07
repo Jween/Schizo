@@ -142,8 +142,10 @@ public class ServiceComponent implements Component{
                     @Override
                     public SchizoResponse apply(ISchizoBridgeInterface iSchizoBridgeInterface) throws Exception {
                         SchizoRequest schizoRequest = new SchizoRequest(api);
-                        StringConverter requestConverter = factory.stringConverter(request.getClass());
-                        schizoRequest.setBody(requestConverter.toString(request));
+                        if (request != null) {
+                            StringConverter requestConverter = factory.stringConverter(request.getClass());
+                            schizoRequest.setBody(requestConverter.toString(request));
+                        }
                         return iSchizoBridgeInterface.single(schizoRequest);
                     }
                 })

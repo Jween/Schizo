@@ -82,20 +82,26 @@ public class SchizoService extends Service {
         if (method != null) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             Class<?> returnType = method.getReturnType();
-            if (parameterTypes != null && parameterTypes.length > 0) {
-                Class<?> requestType = parameterTypes[0];
+            if (parameterTypes != null) {
+
                 StringConverter<?> responseConverter = getConverterFactory().stringConverter(returnType);
-                StringConverter<?> requestConverter = getConverterFactory().stringConverter(requestType);
 
                 try {
-
                     method.setAccessible(true);
-                    Object response = method.invoke(this, requestConverter.fromString(requestBody));
+                    Object response;
+                    boolean hasParameters = parameterTypes.length > 0;
+                    if (hasParameters) {
+                        Class<?> requestType = parameterTypes[0];
+                        StringConverter<?> requestConverter = getConverterFactory().stringConverter(requestType);
+
+                        response = method.invoke(this, requestConverter.fromString(requestBody));
+                    } else {
+                        response = method.invoke(this);
+                    }
                     String responseBody = responseConverter.toString( response);
                     schizoResponse.setBody(responseBody);
                     schizoResponse.setCode(SchizoResponse.CODE.SUCCESS);
-
-                } catch (IllegalAccessException e) {
+                } catch (IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                     schizoResponse.setCode(SchizoResponse.CODE.ILLEGAL_ACCESS);
                     schizoResponse.setBody("Illegal Access");
@@ -103,10 +109,6 @@ public class SchizoService extends Service {
                     e.printStackTrace();
                     schizoResponse.setCode(SchizoResponse.CODE.IO_EXCEPTION);
                     schizoResponse.setBody("IO Exception");
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                    schizoResponse.setCode(SchizoResponse.CODE.ILLEGAL_ACCESS);
-                    schizoResponse.setBody("Illegal Access");
                 }
             }
         }
