@@ -13,13 +13,14 @@ import io.jween.schizo.SchizoRequest;
 import io.jween.schizo.SchizoResponse;
 import io.jween.schizo.converter.StringConverter;
 import io.jween.schizo.converter.gson.GsonConverterFactory;
-
+import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
-import io.reactivex.annotations.NonNull;
+import io.reactivex.SingleSource;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
 
 /**
  * Created by Jwn on 2017/9/15.
@@ -30,10 +31,32 @@ public class ServiceComponent implements Component{
 
     private ISchizoBridgeInterface aidl;
     private ServiceConnection serviceConnection = null;
-    private Context context = null;
+    private Context context;
     private String action;
-    private boolean bound = false;
-    private final Object boundLock = new Object[0];
+
+    private final Object stateLock = new Object[0];
+
+    enum BinderState {
+        UNBOUND,
+        BINDING,
+        BOUND
+    }
+
+    private BehaviorSubject<BinderState> stateBehavior =
+            BehaviorSubject.createDefault(BinderState.UNBOUND);
+
+    private void changeState(BinderState state) {
+        synchronized (stateLock) {
+            stateBehavior.onNext(state);
+        }
+    }
+
+
+    private Observable<BinderState> observeState() {
+        synchronized (stateLock) {
+            return stateBehavior;
+        }
+    }
 
 
     public ServiceComponent(Context context, String action) {
@@ -49,69 +72,76 @@ public class ServiceComponent implements Component{
         return action;
     }
 
-    private boolean isBound() {
-        synchronized (boundLock) {
-            return bound;
-        }
-    }
 
     /**
      * unbind from service
      */
     public void unbindService() {
-        synchronized (boundLock) {
+        synchronized (stateLock) {
             if (this.context != null && serviceConnection != null) {
                 Log.i(TAG, "unbinding service ...");
                 this.context.unbindService(serviceConnection);
                 serviceConnection = null;
-                bound = false;
+                changeState(BinderState.UNBOUND);
             }
         }
     }
 
+    private void bindService() throws SchizoException {
+        changeState(BinderState.BINDING);
+
+        final String packageName = context.getPackageName();
+        Log.i(TAG, "binding service ...");
+        Intent intent = new Intent(getAction());
+        intent.setPackage(packageName);
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName componentName, IBinder service) {
+                Log.i(TAG, "onServiceConnected");
+                aidl = bindAidlInterfaceOnServiceConnected(componentName, service);
+                Log.i(TAG, "onServiceConnected end");
+                changeState(BinderState.BOUND);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+                Log.i(TAG, "onServiceDisconnected");
+                aidl = null;
+                changeState(BinderState.UNBOUND);
+            }
+        };
+
+        boolean bound = context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        if (!bound) {
+            Log.e(TAG, "Error cant bind to service !");
+            throw new SchizoException("Schizo cannot bind service with action " + getAction());
+        }
+    }
 
     public Single<ISchizoBridgeInterface> getInterface() {
-        if (isBound()) {
-
-            return Single.just(aidl);
-        } else {
-            final String packageName = context.getPackageName();
-            return Single.create(new SingleOnSubscribe<ISchizoBridgeInterface>() {
-                @Override
-                public void subscribe(@NonNull final SingleEmitter<ISchizoBridgeInterface> singleEmitter) throws Exception {
-                    synchronized (boundLock) {
-                        Log.i(TAG, "binding service ...");
-                        Intent intent = new Intent(getAction());
-                        intent.setPackage(packageName);
-                        serviceConnection = new ServiceConnection() {
-                            @Override
-                            public void onServiceConnected(ComponentName componentName, IBinder service) {
-                                Log.i(TAG, "onServiceConnected");
-                                aidl = bindAidlInterfaceOnServiceConnected(componentName, service);
-                                Log.i(TAG, "onServiceConnected end");
-                                singleEmitter.onSuccess(aidl);
-                            }
-
-                            @Override
-                            public void onServiceDisconnected(ComponentName componentName) {
-                                Log.i(TAG, "onServiceDisconnected");
-                                aidl = null;
-                                synchronized (boundLock) {
-                                    bound = false;
-                                }
-                            }
-                        };
-
-                        bound = context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-                        if (!bound) {
-                            Log.e(TAG, "Error cant bind to service !");
-                            singleEmitter.onError(new SchizoException("Schizo cannot bind service with action " + getAction()));
+        return observeState().subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<BinderState>() {
+                    @Override
+                    public void accept(BinderState binderState) throws Exception {
+                        if (binderState == BinderState.UNBOUND) {
+                            bindService();
                         }
                     }
-                }
-            }).subscribeOn(Schedulers.io());
-        }
+                })
+                .filter(new Predicate<BinderState>() {
+                    @Override
+                    public boolean test(BinderState binderState) throws Exception {
+                        return binderState == BinderState.BOUND;
+                    }
+                })
+                .firstOrError()
+                .flatMap(new Function<BinderState, SingleSource<ISchizoBridgeInterface>>() {
+                    @Override
+                    public SingleSource<ISchizoBridgeInterface> apply(BinderState binderState) throws Exception {
+                        return Single.just(aidl);
+                    }
+                });
     }
 
     private ISchizoBridgeInterface bindAidlInterfaceOnServiceConnected(ComponentName componentName, IBinder service) {
