@@ -2,8 +2,8 @@ package io.jween.schizo.sample.service;
 
 import android.util.Log;
 
-import io.jween.schizo.annotation.Api;
 import io.jween.schizo.annotation.Action;
+import io.jween.schizo.annotation.Api;
 import io.jween.schizo.sample.constant.Actions;
 import io.jween.schizo.sample.service.bean.Book;
 import io.jween.schizo.sample.service.bean.Person;
@@ -37,5 +37,11 @@ public class TestService extends SchizoService {
     @Api("noParameter")
     String getNothing() {
         return "Nothing!";
+    }
+
+    @Api("testException")
+    String testException() throws Exception{
+        throw new Exception("Test Exception from Remote [TestService]");
+//        return "Nothing!";
     }
 }

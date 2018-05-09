@@ -14,11 +14,15 @@ import io.jween.schizo.sample.service.bean.Book;
 import io.jween.schizo.sample.service.bean.Person;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     int counter = 0;
+    CompositeDisposable cd = new CompositeDisposable();
 
+    FloatingActionButton fab;
+    Consumer<Throwable> eatException;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,14 +31,20 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         TestServiceApi.attach(this);
+        fab = findViewById(R.id.fab);
+        eatException = new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+                Snackbar.make(fab, throwable.toString(), Snackbar.LENGTH_LONG).show();
+            }
+        };
 
-        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
                 int ret = counter++;
                 if (ret % 4 == 0) {
-                    TestServiceApi.person("hi")
+                    cd.add(TestServiceApi.person("hi")
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Person>() {
                                 @Override
@@ -43,21 +53,23 @@ public class MainActivity extends AppCompatActivity {
                                             "response: Person[" + person.name + " " + person.surname + "]", Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 }
-                            });
+                            }, eatException)
+                    );
                 } else if(ret % 4 == 1) {
 
-                    TestServiceApi.book("logic")
+                    cd.add(TestServiceApi.book("logic")
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Book>() {
                                 @Override
-                                public void accept(Book book) throws Exception {
+                                public void accept(Book book){
                                     Snackbar.make(view,
                                             "response: Book[" + book.getTitle() + " " + book.getAuthor() + "]", Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 }
-                            });
+                            }, eatException)
+                    );
                 } else if(ret % 4 == 2) {
-                    TestServiceApi.book1(new Person("Maogan", "Tao"))
+                    cd.add(TestServiceApi.book1(new Person("Maogan", "Tao"))
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<Book>() {
                                 @Override
@@ -66,9 +78,10 @@ public class MainActivity extends AppCompatActivity {
                                             "response: Person -> Book[" + book.getTitle() + " " + book.getAuthor() + "]", Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 }
-                            });
+                            }, eatException)
+                    );
                 } else {
-                    TestServiceApi.noParameter()
+                    cd.add(TestServiceApi.noParameter()
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Consumer<String>() {
                                 @Override
@@ -77,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
                                             "response: noParameters -> " + s, Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 }
-                            });
+                            }, eatException)
+                    );
                 }
             }
         });
@@ -99,6 +113,17 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            cd.add(TestServiceApi.testException()
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Consumer<String>() {
+                        @Override
+                        public void accept(String s) throws Exception {
+                            Snackbar.make(fab,
+                                    "response: testException -> " + s, Snackbar.LENGTH_LONG)
+                                    .setAction("Action", null).show();
+                        }
+                    }, eatException)
+            );
             return true;
         }
 
@@ -109,5 +134,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         TestServiceApi.detach();
+        cd.clear();
     }
 }
