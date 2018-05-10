@@ -5,6 +5,8 @@ import android.app.Application;
 import android.content.Context;
 import android.text.TextUtils;
 
+import io.jween.schizo.sample.service.TestServiceApi;
+
 /**
  * Created by Jwn on 2017/8/30.
  */
@@ -28,6 +30,6 @@ public final class SchizoApplication extends Application {
 
         /* Initializations for the UI process */
 
-
+        TestServiceApi.attach(this);
     }
 }

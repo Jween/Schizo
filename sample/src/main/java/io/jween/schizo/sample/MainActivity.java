@@ -30,7 +30,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        TestServiceApi.attach(this);
         fab = findViewById(R.id.fab);
         eatException = new Consumer<Throwable>() {
             @Override
@@ -133,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        TestServiceApi.detach();
         cd.clear();
     }
 }
