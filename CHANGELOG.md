@@ -1,3 +1,5 @@
+### Version 0.3 @ 2018-05-21
++ 修复 ServiceComponent 绑定阶段偶现主线程阻塞问题
 
 ### Version 0.2 @ 2018-05-07
 + 修复 ServiceComponent 绑定阶段偶现空指针异常

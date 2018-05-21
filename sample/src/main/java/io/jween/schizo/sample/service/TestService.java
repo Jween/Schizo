@@ -41,7 +41,7 @@ public class TestService extends SchizoService {
 
     @Api("testException")
     String testException() throws Exception{
+        Thread.sleep(10 * 1000);
         throw new Exception("Test Exception from Remote [TestService]");
-//        return "Nothing!";
     }
 }

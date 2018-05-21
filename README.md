@@ -8,8 +8,8 @@
 #### build.gradle
 
 ````groovy
-annotationProcessor 'io.jween.schizo:processor:0.2'
-implementation 'io.jween.schizo:schizo:0.2'
+annotationProcessor 'io.jween.schizo:processor:0.3'
+implementation 'io.jween.schizo:schizo:0.3'
 ````
 
 #### 代码
@@ -109,7 +109,7 @@ schizo 库的多线程处理, 以及接口返回是响应式的, 协议封装与
 
 ````groovy
 implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
+implementation 'io.reactivex.rxjava2:rxjava:2.1.13'
 implementation 'com.google.code.gson:gson:2.8.2'
 ````
     

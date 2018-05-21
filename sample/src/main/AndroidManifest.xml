@@ -24,7 +24,7 @@
         <service
             android:name=".service.TestService"
             android:exported="false"
-            android:process=":net" >
+            android:process=":net">
             <intent-filter>
                 <action android:name="io.jween.schizo.test1" />
             </intent-filter>

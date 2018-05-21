@@ -54,7 +54,7 @@ public class ServiceComponent implements Component{
 
     private Observable<BinderState> observeState() {
         synchronized (stateLock) {
-            return stateBehavior;
+            return stateBehavior.subscribeOn(Schedulers.io()).observeOn(Schedulers.io());
         }
     }
 
@@ -120,7 +120,7 @@ public class ServiceComponent implements Component{
     }
 
     public Single<ISchizoBridgeInterface> getInterface() {
-        return observeState().subscribeOn(Schedulers.io())
+        return observeState()
                 .doOnNext(new Consumer<BinderState>() {
                     @Override
                     public void accept(BinderState binderState) throws Exception {
@@ -141,7 +141,7 @@ public class ServiceComponent implements Component{
                     public SingleSource<ISchizoBridgeInterface> apply(BinderState binderState) throws Exception {
                         return Single.just(aidl);
                     }
-                });
+                }).observeOn(Schedulers.io());
     }
 
     private ISchizoBridgeInterface bindAidlInterfaceOnServiceConnected(ComponentName componentName, IBinder service) {
