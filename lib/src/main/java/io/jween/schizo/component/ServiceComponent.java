@@ -115,7 +115,7 @@ public class ServiceComponent implements Component{
 
         if (!bound) {
             Log.e(TAG, "Error cant bind to service !");
-            throw new SchizoException("Schizo cannot bind service with action " + getAction());
+            throw new SchizoException(SchizoResponse.CODE.IO_EXCEPTION, "Schizo cannot bind service with action " + getAction());
         }
     }
 
@@ -189,7 +189,8 @@ public class ServiceComponent implements Component{
                         if (responseCode == SchizoResponse.CODE.SUCCESS) {
                             result = (RES)responseConverter.fromString(schizoResponse.getBody());
                         } else {
-                            throw new SchizoException("Schizo Exception Code " + schizoResponse.getCode());
+                            SchizoException exception = SchizoException.fromSchizoErrorBody(schizoResponse.getBody());
+                            throw exception;
                         }
                         return result;
 

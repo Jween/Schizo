@@ -7,6 +7,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import io.jween.schizo.ISchizoBridgeInterface;
+import io.jween.schizo.SchizoException;
 import io.jween.schizo.SchizoRequest;
 import io.jween.schizo.SchizoResponse;
 import io.jween.schizo.annotation.Api;
@@ -102,13 +103,31 @@ public class SchizoService extends Service {
                     schizoResponse.setBody(responseBody);
                     schizoResponse.setCode(SchizoResponse.CODE.SUCCESS);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                    schizoResponse.setCode(SchizoResponse.CODE.ILLEGAL_ACCESS);
-                    schizoResponse.setBody("Illegal Access");
+                    int statusCode = SchizoResponse.CODE.ILLEGAL_ACCESS;
+                    schizoResponse.setCode(statusCode);
+
+                    SchizoException exception;
+                    Throwable cause = e.getCause();
+                    if (cause instanceof SchizoException) {
+                        exception = (SchizoException) cause;
+                    } else {
+                        exception = new SchizoException(statusCode, cause.getMessage());
+                    }
+                    schizoResponse.setBody(exception.toSchizoErrorBody());
+
                 } catch (IOException e) {
                     e.printStackTrace();
-                    schizoResponse.setCode(SchizoResponse.CODE.IO_EXCEPTION);
-                    schizoResponse.setBody("IO Exception");
+                    int statusCode = SchizoResponse.CODE.ILLEGAL_ACCESS;
+                    schizoResponse.setCode(statusCode);
+
+                    SchizoException exception;
+                    Throwable cause = e.getCause();
+                    if (cause instanceof SchizoException) {
+                        exception = (SchizoException) cause;
+                    } else {
+                        exception = new SchizoException(statusCode, cause.getMessage());
+                    }
+                    schizoResponse.setBody(exception.toSchizoErrorBody());
                 }
             }
         }

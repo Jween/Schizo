@@ -2,6 +2,8 @@ package io.jween.schizo.sample.service;
 
 import android.util.Log;
 
+import io.jween.schizo.SchizoException;
+import io.jween.schizo.SchizoResponse;
 import io.jween.schizo.annotation.Action;
 import io.jween.schizo.annotation.Api;
 import io.jween.schizo.sample.constant.Actions;
@@ -42,6 +44,6 @@ public class TestService extends SchizoService {
     @Api("testException")
     String testException() throws Exception{
         Thread.sleep(10 * 1000);
-        throw new Exception("Test Exception from Remote [TestService]");
+        throw new SchizoException(SchizoResponse.CODE.ILLEGAL_ACCESS, "Test Exception from Remote [TestService]");
     }
 }
