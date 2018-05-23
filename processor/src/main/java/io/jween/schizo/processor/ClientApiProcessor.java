@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.jween.io/licenses/APACHE-LICENSE-2.0.md
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.jween.schizo.processor;
 
 import android.content.Context;
@@ -38,7 +52,20 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
-
+/**
+ * Generates the client-end api class for the given {@linkplain SchizoService}
+ * annotated by {@linkplain Action} and it's server methods annotated by {@linkplain Api}.
+ *
+ * The class name it generates follows the ${ServiceName}Api pattern,
+ * Server service name suffixed by Api.
+ *
+ * The methods it generates are consist of two parts.
+ * <ul>
+ * <li>Part I: <code>attach<code/> and <code>detach</code>.</li>
+ * <li>Part II: the api methods, from the methods annotated by {@linkplain Api}
+ * from the custom {@linkplain SchizoService}</li>
+ * </ul>
+ */
 @SupportedAnnotationTypes({"io.jween.schizo.annotation.Action", "io.jween.schizo.annotation.Api"})
 public class ClientApiProcessor extends AbstractProcessor{
     private Messager messager;
@@ -91,7 +118,7 @@ public class ClientApiProcessor extends AbstractProcessor{
             apiClassBuilder.addField(actionField);
 
 
-            // generate attach method
+            // generate `void attach(Context context)` method
             MethodSpec attachMethod = MethodSpec.methodBuilder("attach")
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     .returns(void.class)
@@ -100,7 +127,7 @@ public class ClientApiProcessor extends AbstractProcessor{
                     .build();
             apiClassBuilder.addMethod(attachMethod);
 
-            // generate detach method
+            // generate `void detach()` method
             MethodSpec detachMethod = MethodSpec.methodBuilder("detach")
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     .returns(void.class)
@@ -158,6 +185,15 @@ public class ClientApiProcessor extends AbstractProcessor{
         return true;
     }
 
+    /**
+     *  Get the api methods(service methods annotated with {@linkplain Api)
+     *
+     * @param elements the element utils from the processing environment.
+     * @param type the given class type element, indicates to the sub-class of
+     *             ${@linkplain SchizoService} annotated with {@linkplain Action}
+     * @return the Api methods elements annotated with {@linkplain Api}
+     * inside the given <code>type</code>
+     */
     private static Set<ExecutableElement> getApiElements(Elements elements, TypeElement type) {
         Set<ExecutableElement> found = new HashSet<>();
 
