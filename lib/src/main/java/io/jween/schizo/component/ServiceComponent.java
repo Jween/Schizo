@@ -19,17 +19,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.jween.schizo.ISchizoBridgeInterface;
+import io.jween.schizo.SchizoCallback;
 import io.jween.schizo.SchizoException;
 import io.jween.schizo.SchizoRequest;
 import io.jween.schizo.SchizoResponse;
 import io.jween.schizo.converter.StringConverter;
 import io.jween.schizo.converter.gson.GsonConverterFactory;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -190,18 +199,132 @@ public class ServiceComponent implements Component{
                             StringConverter requestConverter = factory.stringConverter(request.getClass());
                             schizoRequest.setBody(requestConverter.toString(request));
                         }
-                        return iSchizoBridgeInterface.single(schizoRequest);
+                        Log.e(TAG, "single schizo request in component is " + schizoRequest.getApi() + "/" + schizoRequest.getBody());
+                        SchizoResponse response = iSchizoBridgeInterface.single(schizoRequest);
+                        Log.e(TAG, "single schizo response in component call is " + response.getCode() + "/" + response.getBody());
+                        return response;
                     }
                 })
                 .map(new Function<SchizoResponse, RES>() {
                     @Override
                     public RES apply(SchizoResponse schizoResponse) throws Exception {
+                        Log.e(TAG, "single schizo response in component map is " + schizoResponse.getCode() + "/" + schizoResponse.getBody());
                         StringConverter responseConverter = factory.stringConverter(responseType);
                         int responseCode = schizoResponse.getCode();
                         RES result = null;
 
                         if (responseCode == SchizoResponse.CODE.SUCCESS) {
                             result = (RES)responseConverter.fromString(schizoResponse.getBody());
+                            return result;
+                        } else {
+                            SchizoException exception = SchizoException.fromSchizoErrorBody(schizoResponse.getBody());
+                            throw exception;
+                        }
+                    }
+                });
+    }
+
+    private class AidlObservableSource<T> implements ObservableSource<SchizoResponse> {
+        String api;
+        T request;
+        ISchizoBridgeInterface aidl;
+        StringConverter.Factory factory = getConverterFactory();
+        AtomicBoolean freeResource = new AtomicBoolean(true);
+        public AidlObservableSource(String api, T request ) {
+            this.api = api;
+            this.request = request;
+        }
+
+        public void setAidlInterface(ISchizoBridgeInterface aidl) {
+            this.aidl = aidl;
+            freeResource.set(false);
+        }
+
+        @Override
+        public void subscribe(final Observer<? super SchizoResponse> observer) {
+            SchizoRequest schizoRequest = new SchizoRequest(api);
+            if (request != null) {
+                StringConverter requestConverter = factory.stringConverter(request.getClass());
+                try {
+                    schizoRequest.setBody(requestConverter.toString(request));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    observer.onError(e);
+                }
+            }
+            try {
+                SchizoCallback schizoCallback = new SchizoCallback.Stub() {
+
+                    @Override
+                    public void onNext(SchizoResponse cb) throws RemoteException {
+                        Log.d(TAG, "get onNext " + cb.getCode() + "/" + cb.getBody());
+                        if (freeResource.get()) {
+                            aidl.dispose(this);
+                            Log.d(TAG, "Stub free resource onNext.");
+                        }
+                        observer.onNext(cb);
+                    }
+
+                    @Override
+                    public void onComplete() throws RemoteException {
+                        if (freeResource.get()) {
+                            aidl.dispose(this);
+                            Log.d(TAG, "Stub free resource onComplete.");
+                        }
+                        observer.onComplete();
+                    }
+
+                    @Override
+                    public void onError(SchizoException e) throws RemoteException {
+                        Log.d(TAG, "Stub get onError ");
+                        e.printStackTrace();
+                        if (freeResource.get()) {
+                            aidl.dispose(this);
+                            Log.d(TAG, "Stub free resource onError ");
+                        }
+                        observer.onError(e);
+                    }
+                };
+                aidl.observe(schizoRequest, schizoCallback);
+            } catch (RemoteException e) {
+                Log.e(TAG, "observing error ");
+                e.printStackTrace();
+                observer.onError(e);
+            }
+        }
+
+        public void freeResource() {
+            freeResource.set(true);
+        }
+    }
+
+    public final <REQ, NEXT> Observable<NEXT> processObserver(final String api, final REQ request, final Class<NEXT> responseType) {
+        final StringConverter.Factory factory = getConverterFactory();
+        final AidlObservableSource<REQ> source = new AidlObservableSource<>(api, request);
+        return getInterface()
+                .flatMapObservable(new Function<ISchizoBridgeInterface, ObservableSource<? extends SchizoResponse>>() {
+                    @Override
+                    public ObservableSource<? extends SchizoResponse> apply(
+                            final ISchizoBridgeInterface iSchizoBridgeInterface) throws Exception {
+                        source.setAidlInterface(iSchizoBridgeInterface);
+                        return source;
+                    }
+                }).doOnDispose(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        source.freeResource();
+                    }
+                })
+                .share()
+                .map(new Function<SchizoResponse, NEXT>() {
+                    @Override
+                    public NEXT apply(SchizoResponse schizoResponse) throws Exception {
+                        StringConverter responseConverter = factory.stringConverter(responseType);
+                        int responseCode = schizoResponse.getCode();
+                        NEXT result = null;
+
+                        if (responseCode == SchizoResponse.CODE.ON_NEXT) {
+                            result = (NEXT)responseConverter.fromString(schizoResponse.getBody());
                         } else {
                             SchizoException exception = SchizoException.fromSchizoErrorBody(schizoResponse.getBody());
                             throw exception;

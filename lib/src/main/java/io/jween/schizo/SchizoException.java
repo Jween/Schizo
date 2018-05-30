@@ -14,12 +14,23 @@
 
 package io.jween.schizo;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.os.RemoteException;
+import android.text.TextUtils;
+import android.util.Log;
+
 /**
  * Created by Jwn on 2018/1/18.
  */
 
-public class SchizoException extends Exception{
+public class SchizoException extends RemoteException implements Parcelable {
     private int code;
+    private String customMessage;
+
+    public SchizoException() {
+
+    }
 
     public SchizoException(int code, String message) {
         super(message);
@@ -39,7 +50,50 @@ public class SchizoException extends Exception{
     }
 
     public static SchizoException fromSchizoErrorBody(String errorBody) {
+        Log.d("TAG", "errorBody is " + errorBody);
         String[] postSplit = errorBody.split(":", 2);
         return new SchizoException(Integer.valueOf(postSplit[0]), postSplit[1]);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public String getMessage() {
+        return TextUtils.isEmpty(customMessage) ? super.getMessage() : customMessage;
+    }
+
+    public void setMessage(String customMessage) {
+        this.customMessage = customMessage;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.code);
+        dest.writeString(getMessage());
+    }
+
+    protected SchizoException(Parcel in) {
+        this.code = in.readInt();
+        setMessage(in.readString());
+    }
+
+    public static final Parcelable.Creator<SchizoException> CREATOR = new Parcelable.Creator<SchizoException>() {
+        @Override
+        public SchizoException createFromParcel(Parcel source) {
+            return new SchizoException(source);
+        }
+
+        @Override
+        public SchizoException[] newArray(int size) {
+            return new SchizoException[size];
+        }
+    };
+
+    public void readFromParcel(Parcel in) {
+        this.code = in.readInt();
+        setMessage(in.readString());
     }
 }

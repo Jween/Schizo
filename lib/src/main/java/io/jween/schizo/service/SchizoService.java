@@ -17,20 +17,32 @@ package io.jween.schizo.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 
 import io.jween.schizo.ISchizoBridgeInterface;
+import io.jween.schizo.SchizoCallback;
 import io.jween.schizo.SchizoException;
+import io.jween.schizo.SchizoProducer;
 import io.jween.schizo.SchizoRequest;
 import io.jween.schizo.SchizoResponse;
 import io.jween.schizo.annotation.Api;
 import io.jween.schizo.converter.StringConverter;
 import io.jween.schizo.converter.gson.GsonConverterFactory;
+import io.jween.schizo.exception.CallbackRemovedException;
+import io.jween.schizo.util.SchizoExceptions;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,10 +54,11 @@ import java.util.Map;
  */
 
 public class SchizoService extends Service {
-    private static final String TAG = "Schizo";
+    private static final String TAG = "SchizoService";
     private static Map<String, Method> API_METHODS;
 
     private StringConverter.Factory converterFactory;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     /* public */ void setConverterFactory(StringConverter.Factory factory) {
         this.converterFactory = factory;
@@ -81,13 +94,117 @@ public class SchizoService extends Service {
             return dispatchRequest(request);
         }
 
-//        @Override
-//        public void observe(SchizoRequest request, SchizoCallback callback) throws RemoteException {
-//
-//        }
+        @Override
+        public void observe(SchizoRequest request, SchizoCallback callback) throws RemoteException {
+            dispatchRequestWithCallback(request, callback);
+        }
+
+        @Override
+        public void dispose(SchizoCallback callback) throws RemoteException {
+            callbacks.unregister(callback);
+        }
     };
 
-    SchizoResponse dispatchRequest(SchizoRequest request) {
+    RemoteCallbackMap<SchizoCallback> callbacks = new RemoteCallbackMap<>();
+
+    private void dispatchRequestWithCallback(
+            final SchizoRequest request, SchizoCallback callback) throws SchizoException{
+        callbacks.register(callback, request);
+        Log.d(TAG, "Remote callback size is " + callbacks.getRegisteredCallbackCount());
+        String api = request.getApi();
+        String requestBody = request.getBody();
+
+        Method method = getApiMethods().get(api);
+
+
+        if (method != null) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+//            Class<?> returnType = method.getReturnType();
+            Type returnType = method.getGenericReturnType();
+            Type genericReturnType = ((ParameterizedType)returnType).getActualTypeArguments()[0];
+            final StringConverter<?> responseConverter =
+                    getConverterFactory().stringConverter(genericReturnType);
+
+            if (parameterTypes != null) {
+                method.setAccessible(true);
+                Observable<?> responseObserver;
+                boolean hasParameters = parameterTypes.length > 0;
+                if (hasParameters) {
+                    Class<?> requestType = parameterTypes[0];
+                    StringConverter<?> requestConverter = getConverterFactory().stringConverter(requestType);
+
+                    try {
+                        responseObserver = (Observable<?>)method.invoke(this, requestConverter.fromString(requestBody));
+                    } catch (IllegalAccessException|InvocationTargetException|IOException e) {
+                        e.printStackTrace();
+                        try {
+                            callback.onError(SchizoExceptions.from(e));
+                        } catch (RemoteException shitHappened) {
+                            shitHappened.printStackTrace();
+                            throw SchizoExceptions.from(shitHappened);
+                        }
+                        return;
+                    }
+                } else {
+                    try {
+                        responseObserver = (Observable<?>)method.invoke(this);
+                    } catch (IllegalAccessException|InvocationTargetException e) {
+                        e.printStackTrace();
+                        try {
+                            callback.onError(SchizoExceptions.from(e));
+                        } catch (RemoteException shitHappened) {
+                            shitHappened.printStackTrace();
+                            throw SchizoExceptions.from(shitHappened);
+                        }
+                        return;
+                    }
+                }
+
+                final Disposable disposable =
+                        responseObserver.share().subscribe(new Consumer<Object>() {
+                    @Override
+                    public void accept(Object next) throws Exception {
+                        SchizoResponse schizoResponse = new SchizoResponse();
+                        String responseBody = responseConverter.toString(next);
+                        schizoResponse.setBody(responseBody);
+                        schizoResponse.setCode(SchizoResponse.CODE.ON_NEXT);
+                        Log.d(TAG, "onNext " + schizoResponse.getCode() + "/" + schizoResponse.getBody());
+                        SchizoCallback schizoCallback = callbacks.getCallback(request);
+                        if (schizoCallback != null) {
+                            schizoCallback.onNext(schizoResponse);
+                        } else {
+                            throw new CallbackRemovedException();
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        if (throwable instanceof CallbackRemovedException) {
+                            // do nothing.
+                            Log.d(TAG, "callback has been removed.");
+                        } else {
+                            throwable.printStackTrace();
+                            SchizoCallback schizoCallback = callbacks.getCallback(request);
+                            schizoCallback.onError(SchizoExceptions.from(throwable));
+                        }
+                    }
+                }, new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        SchizoResponse schizoResponse = new SchizoResponse();
+                        schizoResponse.setCode(SchizoResponse.CODE.COMPLETE);
+                        SchizoCallback schizoCallback = callbacks.getCallback(request);
+//                        schizoCallback.onNext(schizoResponse);
+                        schizoCallback.onComplete();
+                    }
+                });
+                compositeDisposable.add(disposable);
+            }
+        }
+
+    }
+
+    SchizoResponse dispatchRequest(SchizoRequest request) throws SchizoException {
         String api = request.getApi();
         String requestBody = request.getBody();
 
@@ -145,7 +262,14 @@ public class SchizoService extends Service {
                 }
             }
         }
+        Log.e(TAG, "single schizo response is " + schizoResponse.getCode() + "/" + schizoResponse.getBody());
         return schizoResponse;
+    }
+
+    @Override
+    public void onDestroy() {
+        compositeDisposable.clear();
+        super.onDestroy();
     }
 
     public static Map<String, Method> getMethodsAnnotatedWithAPI(final Class<?> type) {

@@ -26,6 +26,9 @@ public class SchizoResponse implements Parcelable {
     public interface CODE {
         int ERROR = 404;
         int SUCCESS = 200;
+        int ON_NEXT = 100;
+        int COMPLETE = 200;
+
         int IO_EXCEPTION = 401;
         int ILLEGAL_ACCESS = 402;
 
@@ -67,8 +70,7 @@ public class SchizoResponse implements Parcelable {
     }
 
     protected SchizoResponse(Parcel in) {
-        this.code = in.readInt();
-        this.body = in.readString();
+        readFromParcel(in);
     }
 
     public static final Parcelable.Creator<SchizoResponse> CREATOR = new Parcelable.Creator<SchizoResponse>() {
@@ -82,4 +84,9 @@ public class SchizoResponse implements Parcelable {
             return new SchizoResponse[size];
         }
     };
+
+    public void readFromParcel(Parcel in) {
+        this.code = in.readInt();
+        this.body = in.readString();
+    }
 }

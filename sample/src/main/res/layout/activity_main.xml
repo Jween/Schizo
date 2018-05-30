@@ -59,4 +59,23 @@
         android:text="TestException"
         app:layout_constraintTop_toBottomOf="@id/api_book1_btn" />
 
+    <Button
+        android:id="@+id/api_observe_counter_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onApiObserveCounterClicked"
+        android:text="Observe Counter"
+        android:textColor="@android:color/holo_green_light"
+        app:layout_constraintTop_toBottomOf="@id/api_test_exception_btn" />
+
+    <Button
+        android:id="@+id/api_dispose_counter_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onApiDisposeCounterClicked"
+        android:text="Dispose Counter"
+        android:textColor="@android:color/holo_red_light"
+        app:layout_constraintTop_toBottomOf="@id/api_test_exception_btn"
+        app:layout_constraintLeft_toRightOf="@id/api_observe_counter_btn"/>
+
 </android.support.constraint.ConstraintLayout>

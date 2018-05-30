@@ -16,10 +16,10 @@ import io.jween.schizo.sample.service.bean.Book;
 import io.jween.schizo.sample.service.bean.Person;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
 public class MainActivity extends AppCompatActivity {
-    int counter = 0;
     CompositeDisposable cd = new CompositeDisposable();
 
     Consumer<Throwable> eatException;
@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
             public void accept(Throwable throwable) throws Exception {
                 Snackbar.make(console, throwable.toString(), Snackbar.LENGTH_LONG).show();
                 console.append("\n" + throwable.toString());
+                throwable.printStackTrace();
             }
         };
     }
@@ -104,6 +105,33 @@ public class MainActivity extends AppCompatActivity {
                 }, eatException)
         );
     }
+
+    Disposable disposable;
+    public void onApiObserveCounterClicked(View v) {
+        console.append("\nRequest: observeCounter/interval(3)");
+        if(disposable != null && !disposable.isDisposed()) {
+            console.append("\nRequest: dispose last request.");
+            disposable.dispose();
+        }
+        disposable = TestServiceApi.observeCounter(3)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        console.append("\nOnNext(3):  -> " + s);
+                    }
+                }, eatException);
+        cd.add(disposable);
+    }
+
+    public void onApiDisposeCounterClicked(View v) {
+        console.append("\nDispose: observeCounter/interval(3)");
+        if(disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
+    }
+
+
 
     @Override
     protected void onDestroy() {

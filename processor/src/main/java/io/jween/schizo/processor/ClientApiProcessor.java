@@ -20,6 +20,8 @@ import io.jween.schizo.annotation.Action;
 import io.jween.schizo.annotation.Api;
 import io.jween.schizo.component.ComponentManager;
 import io.jween.schizo.processor.util.ElementUtil;
+import io.reactivex.Observable;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -47,6 +49,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -143,34 +146,72 @@ public class ClientApiProcessor extends AbstractProcessor{
                 Api apiAnnotation = e.getAnnotation(Api.class);
                 String apiString = apiAnnotation.value();
                 TypeMirror returnArgTypeMirror = e.getReturnType();
+                DeclaredType declaredReturnType = (DeclaredType) returnArgTypeMirror;
 
-                TypeName argTypeName = TypeName.get(returnArgTypeMirror);
-                ClassName singleClassName = ClassName.get("io.reactivex", "Single");
-                TypeName returnTypeName = ParameterizedTypeName.get(singleClassName, argTypeName);
+                // indicates that the original server api method return type is Observable<NextType>
+                TypeMirror nextType;    // get the SomeClass
 
-
-                MethodSpec.Builder apiMethodBuilder = MethodSpec.methodBuilder(apiString)
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                        .returns(returnTypeName/*TypeName.get(returnTypeMirror)*/);
-
-                List<? extends VariableElement> parameterElements = e.getParameters();
-                if (parameterElements.size() < 1) {
-//                    messager.printMessage(Diagnostic.Kind.ERROR,
-//                            "Method " + e.getSimpleName() + " missing request parameter");
-
-                    apiMethodBuilder.addStatement(
-                            "return $T.get(ACTION).process($S, $L, $T.class)",
-                            ComponentManager.class, apiString, "null", argTypeName);
-                } else {
-                    VariableElement requestParameterElement = parameterElements.get(0);
-                    ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
-                    apiMethodBuilder.addParameter(requestParameterSpec);
-
-                    apiMethodBuilder.addStatement(
-                            "return $T.get(ACTION).process($S, $L, $T.class)",
-                            ComponentManager.class, apiString, requestParameterSpec.name, argTypeName);
+                try {
+                    // indicates the method returns an Observable<NextType>
+                    nextType = declaredReturnType.getTypeArguments().get(0);
+                } catch (Exception ep) {
+                    // indicates the method returns a non observable result.
+                    nextType = null;
                 }
-                apiClassBuilder.addMethod(apiMethodBuilder.build());
+
+                TypeName returnArgTypeName = TypeName.get(returnArgTypeMirror);
+
+
+                if (nextType != null ) { // build an Observable<?> client api method
+                    MethodSpec.Builder apiMethodBuilder = MethodSpec.methodBuilder(apiString)
+                            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                            .returns(returnArgTypeName/*TypeName.get(returnArgTypeMirror)*/);
+                    List<? extends VariableElement> parameterElements = e.getParameters();
+
+
+                    if (parameterElements.size() < 1) {
+
+                        apiMethodBuilder.addStatement(
+                                "return $T.get(ACTION).processObserver($S, $L, $T.class)",
+                                ComponentManager.class, apiString, "null", nextType);
+                    } else {
+                        VariableElement requestParameterElement = parameterElements.get(0);
+                        ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
+                        apiMethodBuilder.addParameter(requestParameterSpec);
+
+                        apiMethodBuilder.addStatement(
+                                "return $T.get(ACTION).processObserver($S, $L, $T.class)",
+                                ComponentManager.class, apiString, requestParameterSpec.name, nextType);
+                    }
+
+                    apiClassBuilder.addMethod(apiMethodBuilder.build());
+                } else { // build a Single<?> client api method
+
+                    ClassName singleClassName = ClassName.get("io.reactivex", "Single");
+                    TypeName returnTypeName = ParameterizedTypeName.get(singleClassName, returnArgTypeName);
+
+
+                    MethodSpec.Builder apiMethodBuilder = MethodSpec.methodBuilder(apiString)
+                            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                            .returns(returnTypeName/*TypeName.get(returnTypeMirror)*/);
+
+                    List<? extends VariableElement> parameterElements = e.getParameters();
+                    if (parameterElements.size() < 1) {
+                        apiMethodBuilder.addStatement(
+                                "return $T.get(ACTION).process($S, $L, $T.class)",
+                                ComponentManager.class, apiString, "null", returnArgTypeName);
+                    } else {
+                        VariableElement requestParameterElement = parameterElements.get(0);
+                        ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
+                        apiMethodBuilder.addParameter(requestParameterSpec);
+
+                        apiMethodBuilder.addStatement(
+                                "return $T.get(ACTION).process($S, $L, $T.class)",
+                                ComponentManager.class, apiString, requestParameterSpec.name, returnArgTypeName);
+                    }
+
+                    apiClassBuilder.addMethod(apiMethodBuilder.build());
+                }
             }
 
             // write to file

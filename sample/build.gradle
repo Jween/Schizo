@@ -37,7 +37,7 @@ dependencies {
     implementation 'io.jween.schizo:annotation:0.1'
 //    implementation 'io.jween.schizo:schizo:0.3'
 
-//    annotationProcessor project(':processor')
-    annotationProcessor 'io.jween.schizo:processor:0.3'
+    annotationProcessor project(':processor')
+//    annotationProcessor 'io.jween.schizo:processor:0.3'
 
 }
