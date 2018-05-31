@@ -31,7 +31,7 @@ public class ElementUtil {
      * @param elements the given processing environment element utils
      * @param type the class type element
      * @param annotation the given annotation
-     * @return
+     * @return a set of annotated elements
      */
     public static Set<Element> getAnnotatedElements(
             Elements elements,

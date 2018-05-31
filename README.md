@@ -1,6 +1,6 @@
 # Schizo
 
-一个简洁的多进程框架, 正处于开发阶段
+一个响应式的多进程框架, 正处于开发阶段(基于 RxJava
 
 
 ## 使用
@@ -8,8 +8,8 @@
 #### build.gradle
 
 ````groovy
-annotationProcessor 'io.jween.schizo:processor:0.3'
-implementation 'io.jween.schizo:schizo:0.3'
+annotationProcessor 'io.jween.schizo:processor:0.4'
+implementation 'io.jween.schizo:schizo:0.4'
 ````
 
 #### 代码
@@ -24,7 +24,7 @@ implementation 'io.jween.schizo:schizo:0.3'
 
 ## 示例: 
 
-#### 服务端 TestService (该模块开发者提供服务)
+#### 服务端 TestService (该模块开发者提供服务实现)
 
 **TestService.java**
 
@@ -32,28 +32,14 @@ implementation 'io.jween.schizo:schizo:0.3'
 @Action("io.jween.schizo.test1")
 public class TestService extends SchizoService {
 
-    @Api("person")
-    Person getPerson(String name) {
-        Log.i("SCHIZO", "api person accept request: name is " + name);
-        return new Person("Hello", "Schizo");
-    }
-
     @Api("book")
     Book getBook(String title) {
         return new Book(title, "Nobody");
-    }
-
-
-    @Api("book1")
-    Book getBook(Person person) {
-        Log.i("SCHIZO", "Person is [" + person.name + ",,," + person.surname + "]");
-        return new Book(person.name, "Nobody");
     }
 }
 ````
 
 * 每一个 `@Api` 注解的方法, 对应于一个接口
-* 同一个接口的不同版本, Api 改个名字例如 book接口 的兼容版本 book1
 
 **AndroidManifest.xml**
 
@@ -77,33 +63,38 @@ public class TestService extends SchizoService {
 public final class TestServiceApi {
   private static final String ACTION = "io.jween.schizo.test1";
 
-  public static void attach(Context context) {
-    ComponentManager.attach(context, ACTION);
-  }
-
-  public static void detach() {
-    ComponentManager.detach(ACTION);
-  }
-
-  public static Single<Person> person(String name) {
-    return ComponentManager.get(ACTION).process("person", name, Person.class);
-  }
-
   public static Single<Book> book(String title) {
     return ComponentManager.get(ACTION).process("book", title, Book.class);
-  }
-
-  public static Single<Book> book1(Person person) {
-    return ComponentManager.get(ACTION).process("book1", person, Book.class);
   }
 }
 ````
 
 * `attach(Context)`: 引入该进程模块
 * `detach()`: 释放该进程模块
-* `person(String)`, `book(String)`, `book1(Person)`: 根据 `@Api` 自动生成的调用接口, 供客户端调用
+* `book(String)`: 根据 `@Api` 自动生成的调用接口, 供客户端调用
 
-## 自动依赖
+
+### Observable Streaming 数据返回接口
+
+````
+    @Api("observeCounter") // 暴露给客户端的接口名
+    Observable<String> testObserverApi(Integer interval) {
+        Log.d(TAG, "observing counter, interval is " + interval);
+        return Observable.interval(interval, TimeUnit.SECONDS)
+                .map(new Function<Long, String>() {
+                    @Override
+                    public String apply(Long aLong) throws Exception {
+                        Log.d(TAG, "server on next emit " + aLong);
+                        return "Observing " + aLong;
+                    }
+                });
+    }
+````
+
+* 返回使用 Observable<YourReturnType> 即可.
+* 客户端直接调用 TestServiceApi.observeCounter(Integer) 即可.
+
+## 依赖的库
 
 schizo 库的多线程处理, 以及接口返回是响应式的, 协议封装与解析暂时使用 gson
 

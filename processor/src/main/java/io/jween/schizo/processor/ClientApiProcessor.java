@@ -56,7 +56,7 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
 /**
- * Generates the client-end api class for the given {@linkplain SchizoService}
+ * Generates the client-end api class for the given SchizoService
  * annotated by {@linkplain Action} and it's server methods annotated by {@linkplain Api}.
  *
  * The class name it generates follows the ${ServiceName}Api pattern,
@@ -64,9 +64,9 @@ import javax.tools.Diagnostic;
  *
  * The methods it generates are consist of two parts.
  * <ul>
- * <li>Part I: <code>attach<code/> and <code>detach</code>.</li>
+ * <li>Part I: method attach and method detach.</li>
  * <li>Part II: the api methods, from the methods annotated by {@linkplain Api}
- * from the custom {@linkplain SchizoService}</li>
+ * from the custom SchizoService</li>
  * </ul>
  */
 @SupportedAnnotationTypes({"io.jween.schizo.annotation.Action", "io.jween.schizo.annotation.Api"})
@@ -231,9 +231,9 @@ public class ClientApiProcessor extends AbstractProcessor{
      *
      * @param elements the element utils from the processing environment.
      * @param type the given class type element, indicates to the sub-class of
-     *             ${@linkplain SchizoService} annotated with {@linkplain Action}
+     *              SchizoService annotated with {@linkplain Action}
      * @return the Api methods elements annotated with {@linkplain Api}
-     * inside the given <code>type</code>
+     * inside the given type
      */
     private static Set<ExecutableElement> getApiElements(Elements elements, TypeElement type) {
         Set<ExecutableElement> found = new HashSet<>();

@@ -30,14 +30,14 @@ dependencies {
     implementation 'com.android.support:design:26.1.0'
     testImplementation 'junit:junit:4.12'
 
-    implementation project(':lib')
-    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.13'
-    implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'io.jween.schizo:annotation:0.1'
-//    implementation 'io.jween.schizo:schizo:0.3'
+//    implementation project(':lib')
+//    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+//    implementation 'io.reactivex.rxjava2:rxjava:2.1.13'
+//    implementation 'com.google.code.gson:gson:2.8.2'
+//    implementation 'io.jween.schizo:annotation:0.1'
+    implementation 'io.jween.schizo:schizo:0.4'
 
-    annotationProcessor project(':processor')
-//    annotationProcessor 'io.jween.schizo:processor:0.3'
+//    annotationProcessor project(':processor')
+    annotationProcessor 'io.jween.schizo:processor:0.4'
 
 }

@@ -1,3 +1,6 @@
+### Version 0.4 @ 2018-05-31
++ 添加 Observable 响应式接口支持, 用于多段返回的 api 接口
+
 ### Version 0.3 @ 2018-05-21
 + 修复 ServiceComponent 绑定阶段偶现主线程阻塞问题
 
