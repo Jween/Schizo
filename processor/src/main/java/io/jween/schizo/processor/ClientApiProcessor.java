@@ -16,12 +16,6 @@ package io.jween.schizo.processor;
 
 import android.content.Context;
 
-import io.jween.schizo.annotation.Action;
-import io.jween.schizo.annotation.Api;
-import io.jween.schizo.component.ComponentManager;
-import io.jween.schizo.processor.util.ElementUtil;
-import io.reactivex.Observable;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -54,6 +48,11 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+
+import io.jween.schizo.annotation.Action;
+import io.jween.schizo.annotation.Api;
+import io.jween.schizo.component.ComponentManager;
+import io.jween.schizo.processor.util.ElementUtil;
 
 /**
  * Generates the client-end api class for the given SchizoService

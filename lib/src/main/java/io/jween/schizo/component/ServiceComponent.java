@@ -24,7 +24,6 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.jween.schizo.ISchizoBridgeInterface;
 import io.jween.schizo.SchizoCallback;

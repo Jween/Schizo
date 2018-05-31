@@ -4,9 +4,7 @@ import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
 
-import io.jween.schizo.SchizoCallback;
 import io.jween.schizo.SchizoException;
-import io.jween.schizo.SchizoProducer;
 import io.jween.schizo.SchizoResponse;
 import io.jween.schizo.annotation.Action;
 import io.jween.schizo.annotation.Api;
@@ -15,7 +13,6 @@ import io.jween.schizo.sample.service.bean.Book;
 import io.jween.schizo.sample.service.bean.Person;
 import io.jween.schizo.service.SchizoService;
 import io.reactivex.Observable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
 /**
