@@ -32,6 +32,15 @@ implementation 'io.jween.schizo:schizo:0.4'
 
 自动生成的接口类为 `TestServiceApi` (Service 的类名 + Api)
 
+## Proguard
+
+````
+-keepclassmembers class * {
+    @io.jween.schizo.annotation.Api *;
+}
+````
+
+
 ## 示例: 
 
 #### 服务端 TestService (该模块开发者提供服务实现)
