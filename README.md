@@ -118,8 +118,8 @@ public final class TestServiceApi {
 schizo 库的多线程处理, 以及接口返回是响应式的, 协议封装与解析暂时使用 gson
 
 ````groovy
-implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-implementation 'io.reactivex.rxjava2:rxjava:2.1.13'
+implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
 implementation 'com.google.code.gson:gson:2.8.2'
 ````
     

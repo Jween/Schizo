@@ -16,6 +16,7 @@ package io.jween.schizo.processor;
 
 import android.content.Context;
 
+import com.google.gson.reflect.TypeToken;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -26,6 +27,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +55,7 @@ import io.jween.schizo.annotation.Action;
 import io.jween.schizo.annotation.Api;
 import io.jween.schizo.component.ComponentManager;
 import io.jween.schizo.processor.util.ElementUtil;
+import io.reactivex.Observable;
 
 /**
  * Generates the client-end api class for the given SchizoService
@@ -94,6 +97,7 @@ public class ClientApiProcessor extends AbstractProcessor{
                 messager.printMessage(Diagnostic.Kind.ERROR, "Can be applied to class.");
                 return true;
             }
+
             Action actionAnnotation = element.getAnnotation(Action.class);
             String actionValue = actionAnnotation.value();
 
@@ -103,8 +107,8 @@ public class ClientApiProcessor extends AbstractProcessor{
             Elements elements = processingEnv.getElementUtils();
             String servicePackageName = elements.getPackageOf(typeElement).getQualifiedName().toString();
 
-            ClassName.get(typeElement).simpleName();
-            ClassName.get(typeElement).packageName();
+//            ClassName.get(typeElement).simpleName();
+//            ClassName.get(typeElement).packageName();
 
 
             // build class
@@ -161,26 +165,36 @@ public class ClientApiProcessor extends AbstractProcessor{
                 TypeName returnArgTypeName = TypeName.get(returnArgTypeMirror);
 
 
-                if (nextType != null ) { // build an Observable<?> client api method
+                // not used, io.reactivex.Observable type mirror
+                TypeMirror observableTypeMirror = elements.getTypeElement(Observable.class.getCanonicalName()).asType();
+
+                // build an Observable<?> client api method
+                // returnArgTypeName.
+                if (nextType != null && returnArgTypeName.toString().startsWith("io.reactivex.Observable") ) {
                     MethodSpec.Builder apiMethodBuilder = MethodSpec.methodBuilder(apiString)
                             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                             .returns(returnArgTypeName/*TypeName.get(returnArgTypeMirror)*/);
                     List<? extends VariableElement> parameterElements = e.getParameters();
 
-
                     if (parameterElements.size() < 1) {
 
-                        apiMethodBuilder.addStatement(
-                                "return $T.get(ACTION).processObserver($S, $L, $T.class)",
-                                ComponentManager.class, apiString, "null", nextType);
+                        apiMethodBuilder
+                                .addStatement("$T<$T> typeToken = new $T<$T>(){}",
+                                        TypeToken.class, nextType, TypeToken.class, nextType)
+                                .addStatement("$T type = typeToken.getType()", Type.class)
+                                .addStatement("return $T.get(ACTION).processObserver($S, $L, type)",
+                                        ComponentManager.class, apiString, "null");
                     } else {
                         VariableElement requestParameterElement = parameterElements.get(0);
                         ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
                         apiMethodBuilder.addParameter(requestParameterSpec);
 
-                        apiMethodBuilder.addStatement(
-                                "return $T.get(ACTION).processObserver($S, $L, $T.class)",
-                                ComponentManager.class, apiString, requestParameterSpec.name, nextType);
+                        apiMethodBuilder
+                                .addStatement("$T<$T> typeToken = new $T<$T>(){}",
+                                        TypeToken.class, nextType, TypeToken.class, nextType)
+                                .addStatement("$T type = typeToken.getType()", Type.class)
+                                .addStatement("return $T.get(ACTION).processObserver($S, $L, type)",
+                                        ComponentManager.class, apiString, requestParameterSpec.name);
                     }
 
                     apiClassBuilder.addMethod(apiMethodBuilder.build());
@@ -196,17 +210,26 @@ public class ClientApiProcessor extends AbstractProcessor{
 
                     List<? extends VariableElement> parameterElements = e.getParameters();
                     if (parameterElements.size() < 1) {
-                        apiMethodBuilder.addStatement(
-                                "return $T.get(ACTION).process($S, $L, $T.class)",
-                                ComponentManager.class, apiString, "null", returnArgTypeName);
+//                        TypeToken<RES> typeToken = new TypeToken<RES>(){};
+//                        final Type responseType = typeToken.getType();
+
+                        apiMethodBuilder
+                                .addStatement("$T<$T> typeToken = new $T<$T>(){}",
+                                        TypeToken.class, returnArgTypeName, TypeToken.class, returnArgTypeName)
+                                .addStatement("$T type = typeToken.getType()", Type.class)
+                                .addStatement("return $T.get(ACTION).process($S, $L, type)",
+                                        ComponentManager.class, apiString, "null");
                     } else {
                         VariableElement requestParameterElement = parameterElements.get(0);
                         ParameterSpec requestParameterSpec = ParameterSpec.get(requestParameterElement);
                         apiMethodBuilder.addParameter(requestParameterSpec);
 
-                        apiMethodBuilder.addStatement(
-                                "return $T.get(ACTION).process($S, $L, $T.class)",
-                                ComponentManager.class, apiString, requestParameterSpec.name, returnArgTypeName);
+                        apiMethodBuilder
+                                .addStatement("$T<$T> typeToken = new $T<$T>(){}",
+                                        TypeToken.class, returnArgTypeName, TypeToken.class, returnArgTypeName)
+                                .addStatement("$T type = typeToken.getType()", Type.class)
+                                .addStatement("return $T.get(ACTION).process($S, $L, type)",
+                                        ComponentManager.class, apiString, requestParameterSpec.name);
                     }
 
                     apiClassBuilder.addMethod(apiMethodBuilder.build());

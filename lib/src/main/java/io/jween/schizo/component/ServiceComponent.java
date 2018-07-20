@@ -22,7 +22,10 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.google.gson.reflect.TypeToken;
+
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.jween.schizo.ISchizoBridgeInterface;
@@ -187,7 +190,8 @@ public class ServiceComponent implements Component{
         return GsonConverterFactory.create();
     }
 
-    public final <REQ, RES> Single<RES> process(final String api, final REQ request, final Class<RES> responseType) {
+    public final <REQ, RES> Single<RES> process(final String api, final REQ request, final Type responseType) {
+
         final StringConverter.Factory factory = getConverterFactory();
         return getInterface()
                 .map(new Function<ISchizoBridgeInterface, SchizoResponse>() {
@@ -297,7 +301,7 @@ public class ServiceComponent implements Component{
         }
     }
 
-    public final <REQ, NEXT> Observable<NEXT> processObserver(final String api, final REQ request, final Class<NEXT> responseType) {
+    public final <REQ, NEXT> Observable<NEXT> processObserver(final String api, final REQ request, final Type responseType) {
         final StringConverter.Factory factory = getConverterFactory();
         final AidlObservableSource<REQ> source = new AidlObservableSource<>(api, request);
         return getInterface()

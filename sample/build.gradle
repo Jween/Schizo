@@ -14,7 +14,7 @@ android {
 
     buildTypes {
         debug {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -26,18 +26,18 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'com.android.support:design:26.1.0'
     testImplementation 'junit:junit:4.12'
 
-//    implementation project(':lib')
-//    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-//    implementation 'io.reactivex.rxjava2:rxjava:2.1.13'
-//    implementation 'com.google.code.gson:gson:2.8.2'
-//    implementation 'io.jween.schizo:annotation:0.1'
-    implementation 'io.jween.schizo:schizo:0.4'
+    implementation project(':lib')
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'io.jween.schizo:annotation:0.1'
+//    implementation 'io.jween.schizo:schizo:0.5'
 
-//    annotationProcessor project(':processor')
-    annotationProcessor 'io.jween.schizo:processor:0.4'
+    annotationProcessor project(':processor')
+//    annotationProcessor 'io.jween.schizo:processor:0.5'
 
 }

@@ -60,6 +60,16 @@
         app:layout_constraintTop_toBottomOf="@id/api_book1_btn" />
 
     <Button
+        android:id="@+id/api_bookList_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onApiBookListClicked"
+        android:text="Books of Author"
+        app:layout_constraintTop_toBottomOf="@id/api_book1_btn"
+        app:layout_constraintLeft_toRightOf="@id/api_test_exception_btn"
+        />
+
+    <Button
         android:id="@+id/api_observe_counter_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

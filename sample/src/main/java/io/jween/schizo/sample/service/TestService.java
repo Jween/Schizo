@@ -2,6 +2,8 @@ package io.jween.schizo.sample.service;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.jween.schizo.SchizoException;
@@ -34,6 +36,14 @@ public class TestService extends SchizoService {
         return new Book(title, "Nobody");
     }
 
+    @Api("bookList")
+    List<Book> getBooksOfAuthor(String author) {
+        Log.i(TAG, "api bookList accept  author " + author);
+        List<Book> books = new ArrayList<>();
+        books.add(new Book(author+"'s first book", author));
+        books.add(new Book(author+"'s last book", author));
+        return books;
+    }
 
     @Api("book1")
     Book getBook(Person person) {

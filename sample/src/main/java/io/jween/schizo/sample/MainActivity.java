@@ -7,6 +7,8 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.List;
+
 import io.jween.schizo.sample.service.TestServiceApi;
 import io.jween.schizo.sample.service.bean.Book;
 import io.jween.schizo.sample.service.bean.Person;
@@ -74,6 +76,23 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }, eatException)
         );
+    }
+
+    public void onApiBookListClicked(View v) {
+        console.append("\nRequest: bookList/author(Foo)  // get books written by Foo");
+        Disposable d = TestServiceApi.bookList("Foo")
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<Book>>() {
+                    @Override
+                    public void accept(List<Book> books) throws Exception {
+                        console.append("\nReponse: of bookList/author(Foo)");
+                        for (Book book : books) {
+                            console.append("\n    " + book.getTitle() + "/" + book.getAuthor());
+                        }
+                    }
+                }, eatException);
+
+
     }
 
     public void onApiNoParameterClicked(View v) {
