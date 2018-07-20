@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Optional;
 
 import io.jween.schizo.sample.service.TestServiceApi;
 import io.jween.schizo.sample.service.bean.Book;
@@ -65,6 +66,24 @@ public class MainActivity extends AppCompatActivity {
                 }, eatException)
         );
     }
+
+    public void onApiObserveNumberClicked(View v) {
+        console.append("\nRequest: observeNumber/");
+        Disposable d = TestServiceApi.observeNumber()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Optional<Long>>() {
+                    @Override
+                    public void accept(Optional<Long> aLong) throws Exception {
+                        if (aLong.isPresent()) {
+                            console.append("\nnumber changed to " + aLong.get());
+                        } else {
+                            console.append("\nnumbser removed!");
+                        }
+                    }
+                }, eatException);
+        cd.add(d);
+    }
+
     public void onApiBook1Clicked(View v) {
         console.append("\nRequest: book/Person(name:Maogan,surname:Tao)");
         cd.add(TestServiceApi.book1(new Person("Maogan", "Tao"))
@@ -92,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }, eatException);
 
-
+        cd.add(d);
     }
 
     public void onApiNoParameterClicked(View v) {

@@ -18,8 +18,8 @@
 #### build.gradle
 
 ````groovy
-annotationProcessor 'io.jween.schizo:processor:0.4'
-implementation 'io.jween.schizo:schizo:0.4'
+annotationProcessor 'io.jween.schizo:processor:0.5'
+implementation 'io.jween.schizo:schizo:0.5'
 ````
 
 #### 代码

@@ -35,6 +35,15 @@
         app:layout_constraintLeft_toRightOf="@id/api_person_btn" />
 
     <Button
+        android:id="@+id/api_observe_number_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onApiObserveNumberClicked"
+        android:text="Observe Number"
+        app:layout_constraintTop_toBottomOf="@+id/console"
+        app:layout_constraintLeft_toRightOf="@id/api_book_btn" />
+
+    <Button
         android:id="@+id/api_book1_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

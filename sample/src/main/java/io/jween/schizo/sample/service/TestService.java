@@ -4,6 +4,8 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import io.jween.schizo.SchizoException;
@@ -78,5 +80,23 @@ public class TestService extends SchizoService {
                         return "Observing " + aLong;
                     }
                 });
+    }
+
+    @Api("observeNumber")
+    Observable<Optional<Long>> observeNumberChange() {
+        final Random r = new Random();
+
+        return Observable.interval(1, TimeUnit.SECONDS)
+                .map(new Function<Long, Optional<Long>>() {
+                    @Override
+                    public Optional<Long> apply(Long aLong) throws Exception {
+                        Long currentNumber = r.nextLong();
+                        Optional<Long> ret = Optional.empty();
+                        if (currentNumber % 3 == 0) {
+                            ret = Optional.of(currentNumber);
+                        }
+                        return ret;
+                    }
+                }).distinctUntilChanged();
     }
 }
