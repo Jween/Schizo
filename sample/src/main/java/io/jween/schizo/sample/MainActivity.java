@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                         if (aLong.isPresent()) {
                             console.append("\nnumber changed to " + aLong.get());
                         } else {
-                            console.append("\nnumbser removed!");
+                            console.append("\nnumber removed!");
                         }
                     }
                 }, eatException);

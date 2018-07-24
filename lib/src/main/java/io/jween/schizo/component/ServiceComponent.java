@@ -14,15 +14,9 @@
 
 package io.jween.schizo.component;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
-
-import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -35,17 +29,13 @@ import io.jween.schizo.SchizoRequest;
 import io.jween.schizo.SchizoResponse;
 import io.jween.schizo.converter.StringConverter;
 import io.jween.schizo.converter.gson.GsonConverterFactory;
+import io.jween.schizo.service.SchizoBinder;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.Single;
-import io.reactivex.SingleSource;
 import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.BehaviorSubject;
 
 /**
  * Created by Jwn on 2017/9/15.
@@ -54,123 +44,25 @@ import io.reactivex.subjects.BehaviorSubject;
 public class ServiceComponent implements Component{
     private static final String TAG = "ServiceComponent";
 
-    private ISchizoBridgeInterface aidl;
-    private ServiceConnection serviceConnection = null;
-    private Context context;
-    private String action;
-
-    private final Object stateLock = new Object[0];
-
-    enum BinderState {
-        UNBOUND,
-        BINDING,
-        BOUND
-    }
-
-    private BehaviorSubject<BinderState> stateBehavior =
-            BehaviorSubject.createDefault(BinderState.UNBOUND);
-
-    private void changeState(BinderState state) {
-        synchronized (stateLock) {
-            stateBehavior.onNext(state);
-        }
-    }
-
-
-    private Observable<BinderState> observeState() {
-        synchronized (stateLock) {
-            return stateBehavior.subscribeOn(Schedulers.io()).observeOn(Schedulers.io());
-        }
-    }
-
+    private SchizoBinder schizoBinder;
 
     public ServiceComponent(Context context, String action) {
-        this.context = context;
-        this.action = action;
+        schizoBinder = new SchizoBinder(context, action);
     }
-
-//    private Intent getServiceIntent() {
-//        return new Intent(action);
-//    }
-
-    private String getAction() {
-        return action;
-    }
-
 
     /**
      * unbind from service
      */
     public void unbindService() {
-        synchronized (stateLock) {
-            if (this.context != null && serviceConnection != null) {
-                Log.i(TAG, "unbinding service ...");
-                this.context.unbindService(serviceConnection);
-                serviceConnection = null;
-                changeState(BinderState.UNBOUND);
-            }
-        }
+        schizoBinder.changeStateToUnbound();
     }
 
     private void bindService() throws SchizoException {
-        changeState(BinderState.BINDING);
-
-        final String packageName = context.getPackageName();
-        Log.i(TAG, "binding service ...");
-        Intent intent = new Intent(getAction());
-        intent.setPackage(packageName);
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder service) {
-                Log.i(TAG, "onServiceConnected");
-                aidl = bindAidlInterfaceOnServiceConnected(componentName, service);
-                Log.i(TAG, "onServiceConnected end");
-                changeState(BinderState.BOUND);
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                Log.i(TAG, "onServiceDisconnected");
-                aidl = null;
-                changeState(BinderState.UNBOUND);
-            }
-        };
-
-        boolean bound = context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-        if (!bound) {
-            Log.e(TAG, "Error cant bind to service !");
-            throw new SchizoException(SchizoResponse.CODE.IO_EXCEPTION, "Schizo cannot bind service with action " + getAction());
-        }
+        schizoBinder.changeStateToBinding();
     }
 
     public Single<ISchizoBridgeInterface> getInterface() {
-        return observeState()
-                .doOnNext(new Consumer<BinderState>() {
-                    @Override
-                    public void accept(BinderState binderState) throws Exception {
-                        if (binderState == BinderState.UNBOUND) {
-                            bindService();
-                        }
-                    }
-                })
-                .filter(new Predicate<BinderState>() {
-                    @Override
-                    public boolean test(BinderState binderState) throws Exception {
-                        return binderState == BinderState.BOUND;
-                    }
-                })
-                .firstOrError()
-                .flatMap(new Function<BinderState, SingleSource<ISchizoBridgeInterface>>() {
-                    @Override
-                    public SingleSource<ISchizoBridgeInterface> apply(BinderState binderState) throws Exception {
-                        return Single.just(aidl);
-                    }
-                }).observeOn(Schedulers.io());
-    }
-
-    private ISchizoBridgeInterface bindAidlInterfaceOnServiceConnected(ComponentName componentName, IBinder service) {
-        return ISchizoBridgeInterface.Stub.asInterface(service);
+        return schizoBinder.getInterface();
     }
 
     private StringConverter.Factory converterFactory;
@@ -260,10 +152,8 @@ public class ServiceComponent implements Component{
 
                     @Override
                     public void onNext(SchizoResponse cb) throws RemoteException {
-                        Log.d(TAG, "get onNext " + cb.getCode() + "/" + cb.getBody());
                         if (freeResource.get()) {
                             aidl.dispose(this);
-                            Log.d(TAG, "Stub free resource onNext.");
                         }
                         observer.onNext(cb);
                     }
@@ -272,25 +162,21 @@ public class ServiceComponent implements Component{
                     public void onComplete() throws RemoteException {
                         if (freeResource.get()) {
                             aidl.dispose(this);
-                            Log.d(TAG, "Stub free resource onComplete.");
                         }
                         observer.onComplete();
                     }
 
                     @Override
                     public void onError(SchizoException e) throws RemoteException {
-                        Log.d(TAG, "Stub get onError ");
                         e.printStackTrace();
                         if (freeResource.get()) {
                             aidl.dispose(this);
-                            Log.d(TAG, "Stub free resource onError ");
                         }
                         observer.onError(e);
                     }
                 };
                 aidl.observe(schizoRequest, schizoCallback);
             } catch (RemoteException e) {
-                Log.e(TAG, "observing error ");
                 e.printStackTrace();
                 observer.onError(e);
             }
