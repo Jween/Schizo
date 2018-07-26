@@ -19,7 +19,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.util.Log;
 
 import io.jween.schizo.ISchizoBridgeInterface;
 import io.jween.schizo.SchizoException;
@@ -48,6 +47,7 @@ public class SchizoBinder {
     public SchizoBinder(Context context, String action) {
         this.context = context;
         this.action = action;
+
     }
 
     private BehaviorSubject<BinderState> stateBehavior =
@@ -63,24 +63,20 @@ public class SchizoBinder {
             this.serviceConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(ComponentName componentName, IBinder service) {
-                    Log.i(TAG, "onServiceConnected");
                     changeStateToBound(ISchizoBridgeInterface.Stub.asInterface(service) );
                 }
 
                 @Override
                 public void onServiceDisconnected(ComponentName componentName) {
-                    Log.i(TAG, "onServiceDisconnected");
                     changeStateToUnbound();
                 }
             };;
             final String packageName = context.getPackageName();
-            Log.i(TAG, "binding service ...");
             Intent intent = new Intent(action);
             intent.setPackage(packageName);
             boolean bound = context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
 
             if (!bound) {
-                Log.e(TAG, "Error cant bind to service !");
                 throw new SchizoException(SchizoResponse.CODE.IO_EXCEPTION, "Schizo cannot bind service with action " + action);
             }
         }
@@ -103,7 +99,6 @@ public class SchizoBinder {
             }
 
             stateBehavior.onNext(BinderState.UNBOUND);
-            Log.i(TAG, "unbinding service ...");
             this.context.unbindService(serviceConnection);
             this.aidl = null;
             serviceConnection = null;

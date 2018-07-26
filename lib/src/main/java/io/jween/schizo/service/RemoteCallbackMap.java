@@ -26,7 +26,7 @@ public class RemoteCallbackMap<E extends IInterface> {
     private final ArrayMap<IBinder, DeathCallback> callbacks = new ArrayMap<>();
     private final ArrayMap<Object, IBinder> cookies = new ArrayMap<>();
 
-    private boolean mKilled = false;
+    private boolean isKilled = false;
 
     private final class DeathCallback implements IBinder.DeathRecipient {
         final E callback;
@@ -48,7 +48,7 @@ public class RemoteCallbackMap<E extends IInterface> {
 
     public boolean register(E callback, Object cookie) {
         synchronized (callbacks) {
-            if (mKilled) {
+            if (isKilled) {
                 return false;
             }
 
@@ -67,7 +67,7 @@ public class RemoteCallbackMap<E extends IInterface> {
 
     public E getCallback(Object cookie) {
         synchronized (callbacks) {
-            if (mKilled) {
+            if (isKilled) {
                 return null;
             }
 
@@ -133,7 +133,7 @@ public class RemoteCallbackMap<E extends IInterface> {
             }
             callbacks.clear();
             cookies.clear();
-            mKilled = true;
+            isKilled = true;
         }
     }
 
@@ -144,7 +144,7 @@ public class RemoteCallbackMap<E extends IInterface> {
 
     public int getRegisteredCallbackCount() {
         synchronized (callbacks) {
-            if (mKilled) {
+            if (isKilled) {
                 return 0;
             }
             return callbacks.size();

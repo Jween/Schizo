@@ -27,7 +27,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +44,6 @@ import io.jween.schizo.converter.gson.GsonConverterFactory;
 import io.jween.schizo.exception.CallbackRemovedException;
 import io.jween.schizo.util.SchizoExceptions;
 import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
@@ -56,7 +57,8 @@ public class SchizoService extends Service {
     private static Map<String, Method> API_METHODS;
 
     private StringConverter.Factory converterFactory;
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    RemoteCallbackMap<SchizoCallback> callbacks = new RemoteCallbackMap<>();
+    private Hashtable<SchizoRequest, Disposable> pendingDisposables = new Hashtable<>();
 
     /* public */ void setConverterFactory(StringConverter.Factory factory) {
         this.converterFactory = factory;
@@ -75,7 +77,6 @@ public class SchizoService extends Service {
 
     private Map<String, Method> getApiMethods() {
         if (API_METHODS == null) {
-            Log.v(TAG, "getApiMethods from " + getClass().getSimpleName());
             API_METHODS = getMethodsAnnotatedWithAPI(getClass());
         }
         return API_METHODS;
@@ -103,12 +104,10 @@ public class SchizoService extends Service {
         }
     };
 
-    RemoteCallbackMap<SchizoCallback> callbacks = new RemoteCallbackMap<>();
 
     private void dispatchRequestWithCallback(
             final SchizoRequest request, SchizoCallback callback) throws SchizoException{
         callbacks.register(callback, request);
-        Log.d(TAG, "Remote callback size is " + callbacks.getRegisteredCallbackCount());
         String api = request.getApi();
         String requestBody = request.getBody();
 
@@ -125,7 +124,7 @@ public class SchizoService extends Service {
 
             if (parameterTypes != null) {
                 method.setAccessible(true);
-                Observable<?> responseObserver;
+                final Observable<?> responseObserver;
                 boolean hasParameters = parameterTypes.length > 0;
                 if (hasParameters) {
                     Class<?> requestType = parameterTypes[0];
@@ -159,18 +158,20 @@ public class SchizoService extends Service {
                 }
 
                 final Disposable disposable =
-                        responseObserver.share().subscribe(new Consumer<Object>() {
+                        responseObserver.share()
+                                .subscribe(new Consumer<Object>() {
                     @Override
                     public void accept(Object next) throws Exception {
                         SchizoResponse schizoResponse = new SchizoResponse();
                         String responseBody = responseConverter.toString(next);
                         schizoResponse.setBody(responseBody);
                         schizoResponse.setCode(SchizoResponse.CODE.ON_NEXT);
-                        Log.d(TAG, "onNext " + schizoResponse.getCode() + "/" + schizoResponse.getBody());
                         SchizoCallback schizoCallback = callbacks.getCallback(request);
                         if (schizoCallback != null) {
                             schizoCallback.onNext(schizoResponse);
                         } else {
+                            // callback has been removed by the client.
+                            // jump to Throwable Consumer to dispose this subscription,
                             throw new CallbackRemovedException();
                         }
                     }
@@ -178,28 +179,56 @@ public class SchizoService extends Service {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         if (throwable instanceof CallbackRemovedException) {
-                            // do nothing.
-                            Log.d(TAG, "callback has been removed.");
+                            removePendingDisposable(request);
+                            Log.w(TAG, "callback has been removed.");
                         } else {
                             throwable.printStackTrace();
                             SchizoCallback schizoCallback = callbacks.getCallback(request);
-                            schizoCallback.onError(SchizoExceptions.from(throwable));
+                            if (schizoCallback != null) {
+                                schizoCallback.onError(SchizoExceptions.from(throwable));
+                            } else {
+                                removePendingDisposable(request);
+                            }
+
                         }
                     }
                 }, new Action() {
                     @Override
                     public void run() throws Exception {
-                        SchizoResponse schizoResponse = new SchizoResponse();
-                        schizoResponse.setCode(SchizoResponse.CODE.COMPLETE);
+//                        SchizoResponse schizoResponse = new SchizoResponse();
+//                        schizoResponse.setCode(SchizoResponse.CODE.COMPLETE);
                         SchizoCallback schizoCallback = callbacks.getCallback(request);
-//                        schizoCallback.onNext(schizoResponse);
-                        schizoCallback.onComplete();
+                        if (schizoCallback != null) {
+                            schizoCallback.onComplete();
+                        } else {
+                            removePendingDisposable(request);
+                        }
                     }
                 });
-                compositeDisposable.add(disposable);
+                addPendingDisposable(request, disposable);
             }
         }
+    }
 
+    void addPendingDisposable(SchizoRequest request, Disposable disposable) {
+        pendingDisposables.put(request, disposable);
+    }
+
+    void removePendingDisposable(SchizoRequest request) {
+        Disposable disposable = pendingDisposables.remove(request);
+        if (disposable != null && !disposable.isDisposed() ) {
+            disposable.dispose();
+        }
+    }
+
+    void clearPendingDisposables() {
+        Collection<Disposable> disposables = pendingDisposables.values();
+        pendingDisposables.clear();
+        for (Disposable d : disposables) {
+            if (d != null && d.isDisposed()) {
+                d.dispose();
+            }
+        }
     }
 
     SchizoResponse dispatchRequest(SchizoRequest request) throws SchizoException {
@@ -260,13 +289,12 @@ public class SchizoService extends Service {
                 }
             }
         }
-        Log.e(TAG, "single schizo response is " + schizoResponse.getCode() + "/" + schizoResponse.getBody());
         return schizoResponse;
     }
 
     @Override
     public void onDestroy() {
-        compositeDisposable.clear();
+        clearPendingDisposables();
         super.onDestroy();
     }
 
