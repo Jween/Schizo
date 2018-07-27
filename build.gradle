@@ -33,7 +33,7 @@ buildscript {
         schizo = [:]
         schizo.group = "io.jween.schizo"
         schizo.id = "schizo"
-        schizo.version = "0.5"
+        schizo.version = "0.6"
         schizo.siteUrl = "https://github.com/Jween/Schizo"
         schizo.gitUrl = "https://github.com/Jween/Schizo.git"
         schizo.issueTrackerUrl = "https://github.com/Jween/Schizo/issues"

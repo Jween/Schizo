@@ -1,3 +1,8 @@
+### Version 0.6 @ 2018-07-27
++ 删除无用日志
++ 重写 disposable 回收逻辑, 避免 CompositeDisposable 引起的内存膨胀
++ SchizoBinder: 响应式的 binder 封装
+
 ### Version 0.5 @ 2018-07-20
 + 接口支持泛型
 
