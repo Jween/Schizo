@@ -94,16 +94,13 @@ public class ServiceComponent implements Component{
                             StringConverter requestConverter = factory.stringConverter(request.getClass());
                             schizoRequest.setBody(requestConverter.toString(request));
                         }
-                        Log.e(TAG, "single schizo request in component is " + schizoRequest.getApi() + "/" + schizoRequest.getBody());
                         SchizoResponse response = iSchizoBridgeInterface.single(schizoRequest);
-                        Log.e(TAG, "single schizo response in component call is " + response.getCode() + "/" + response.getBody());
                         return response;
                     }
                 })
                 .map(new Function<SchizoResponse, RES>() {
                     @Override
                     public RES apply(SchizoResponse schizoResponse) throws Exception {
-                        Log.e(TAG, "single schizo response in component map is " + schizoResponse.getCode() + "/" + schizoResponse.getBody());
                         StringConverter responseConverter = factory.stringConverter(responseType);
                         int responseCode = schizoResponse.getCode();
                         RES result = null;

@@ -50,7 +50,6 @@ public class SchizoException extends RemoteException implements Parcelable {
     }
 
     public static SchizoException fromSchizoErrorBody(String errorBody) {
-        Log.d("TAG", "errorBody is " + errorBody);
         String[] postSplit = errorBody.split(":", 2);
         return new SchizoException(Integer.valueOf(postSplit[0]), postSplit[1]);
     }
