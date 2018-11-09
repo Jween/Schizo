@@ -35,49 +35,49 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void accept(Throwable throwable) throws Exception {
                 Snackbar.make(console, throwable.toString(), Snackbar.LENGTH_LONG).show();
-                console.append("\n" + throwable.toString());
+                append("\n" + throwable.toString());
                 throwable.printStackTrace();
             }
         };
     }
 
     public void onApiPersonClicked(View v) {
-        console.append("\nRequest: person/String(name=hi)");
+        append("\nRequest: person/String(name=hi)");
         cd.add(TestServiceApi.person("hi")
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Person>() {
                     @Override
                     public void accept(Person person) throws Exception {
-                        console.append("\nResponse: Person[" + person.name + " " + person.surname + "]");
+                        append("\nResponse: Person[" + person.name + " " + person.surname + "]");
                     }
                 }, eatException)
         );
     }
 
     public void onApiBookClicked(View v) {
-        console.append("\nRequest: book/String(title=logic)");
+        append("\nRequest: book/String(title=logic)");
         cd.add(TestServiceApi.book("logic")
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Book>() {
                     @Override
                     public void accept(Book book){
-                        console.append("\nResponse: Book[" + book.getTitle() + " " + book.getAuthor() + "]");
+                        append("\nResponse: Book[" + book.getTitle() + " " + book.getAuthor() + "]");
                     }
                 }, eatException)
         );
     }
 
     public void onApiObserveNumberClicked(View v) {
-        console.append("\nRequest: observeNumber/");
+        append("\nRequest: observeNumber/");
         Disposable d = TestServiceApi.observeNumber()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Optional<Long>>() {
                     @Override
                     public void accept(Optional<Long> aLong) throws Exception {
                         if (aLong.isPresent()) {
-                            console.append("\nnumber changed to " + aLong.get());
+                            append("\nnumber changed to " + aLong.get());
                         } else {
-                            console.append("\nnumber removed!");
+                            append("\nnumber removed!");
                         }
                     }
                 }, eatException);
@@ -85,28 +85,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onApiBook1Clicked(View v) {
-        console.append("\nRequest: book/Person(name:Maogan,surname:Tao)");
+        append("\nRequest: book/Person(name:Maogan,surname:Tao)");
         cd.add(TestServiceApi.book1(new Person("Maogan", "Tao"))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Book>() {
                     @Override
                     public void accept(Book book) throws Exception {
-                        console.append("\nResponse: Person -> Book[" + book.getTitle() + " " + book.getAuthor() + "]");
+                        append("\nResponse: Person -> Book[" + book.getTitle() + " " + book.getAuthor() + "]");
                     }
                 }, eatException)
         );
     }
 
     public void onApiBookListClicked(View v) {
-        console.append("\nRequest: bookList/author(Foo)  // get books written by Foo");
+        append("\nRequest: bookList/author(Foo)  // get books written by Foo");
         Disposable d = TestServiceApi.bookList("Foo")
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<List<Book>>() {
                     @Override
                     public void accept(List<Book> books) throws Exception {
-                        console.append("\nReponse: of bookList/author(Foo)");
+                        append("\nReponse: of bookList/author(Foo)");
                         for (Book book : books) {
-                            console.append("\n    " + book.getTitle() + "/" + book.getAuthor());
+                            append("\n    " + book.getTitle() + "/" + book.getAuthor());
                         }
                     }
                 }, eatException);
@@ -115,26 +115,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onApiNoParameterClicked(View v) {
-        console.append("\nRequest: noParameter/");
+        append("\nRequest: noParameter/");
         cd.add(TestServiceApi.noParameter()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<String>() {
                     @Override
                     public void accept(String s) throws Exception {
-                        console.append("\nResponse: noParameter -> " + s);
+                        append("\nResponse: noParameter -> " + s);
                     }
                 }, eatException)
         );
     }
 
     public void onApiTestExceptionClicked(View v) {
-        console.append("\nRequest: testException/");
+        append("\nRequest: testException/");
         cd.add(TestServiceApi.testException()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<String>() {
                     @Override
                     public void accept(String s) throws Exception {
-                        console.append("\nResponse: testException -> " + s);
+                        append("\nResponse: testException -> " + s);
                     }
                 }, eatException)
         );
@@ -142,9 +142,9 @@ public class MainActivity extends AppCompatActivity {
 
     Disposable disposable;
     public void onApiObserveCounterClicked(View v) {
-        console.append("\nRequest: observeCounter/interval(3)");
+        append("\nRequest: observeCounter/interval(3)");
         if(disposable != null && !disposable.isDisposed()) {
-            console.append("\nRequest: dispose last request.");
+            append("\nRequest: dispose last request.");
             disposable.dispose();
         }
         disposable = TestServiceApi.observeCounter(3)
@@ -152,20 +152,42 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(new Consumer<String>() {
                     @Override
                     public void accept(String s) throws Exception {
-                        console.append("\nOnNext(3):  -> " + s);
+                        append("\nOnNext(3):  -> " + s);
                     }
                 }, eatException);
         cd.add(disposable);
     }
 
     public void onApiDisposeCounterClicked(View v) {
-        console.append("\nDispose: observeCounter/interval(3)");
+        append("\nDispose: observeCounter/interval(3)");
         if(disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
         }
     }
 
 
+    /**
+     * append text to console and scroll to bottom.
+     * @param text
+     */
+    private void append(String text) {
+        final int maxTextLength = 5000;
+
+        CharSequence currentText = console.getText();
+        int currentTextLength = currentText.length();
+        int appendixLength = text.length();
+        if (currentTextLength > maxTextLength) {
+            if (currentTextLength > appendixLength) {
+                console.setText(currentText.subSequence(appendixLength - 1, currentTextLength) );
+                console.append(text);
+            } else {
+                console.setText(text);
+                console.append(""); // append makes TextView scroll to bottom
+            }
+        } else {
+            console.append(text);
+        }
+    }
 
     @Override
     protected void onDestroy() {
