@@ -29,7 +29,6 @@
                 <action android:name="io.jween.schizo.test1" />
             </intent-filter>
         </service>
-
     </application>
 
 </manifest>

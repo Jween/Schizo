@@ -4,15 +4,21 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+
+import com.meizu.flyme.sample.starbucks.Coffee;
+import com.meizu.flyme.sample.starbucks.StartBucksApi;
 
 import java.util.List;
 import java.util.Optional;
 
+import io.jween.schizo.SchizoException;
 import io.jween.schizo.sample.service.TestServiceApi;
 import io.jween.schizo.sample.service.bean.Book;
 import io.jween.schizo.sample.service.bean.Person;
+import io.jween.schizo.util.SchizoExceptions;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
@@ -165,6 +171,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void buyCoffee() {
+        Disposable disposable = StartBucksApi.getCoffee("Cappuccino")
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Coffee>() {
+                               @Override
+                               public void accept(Coffee coffee) throws Exception {
+                                   Log.v("StarBucks",
+                                           "Purchased a cup of " + coffee.getName()
+                                                   + "from" + coffee.getProducer());
+                               }
+                           },
+                        new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                SchizoException exception = SchizoExceptions.from(throwable);
+                                int errorCode = exception.getCode();
+                                String errorMsg = exception.getMessage();
+                                // handle your exceptions
+                            }
+                        });
+        cd.add(disposable);
+    }
 
     /**
      * append text to console and scroll to bottom.
