@@ -1,5 +1,5 @@
 plugins {
-    id "com.jfrog.bintray" version "1.8.0"
+    id "com.jfrog.bintray" version "1.8.4"
 }
 
 apply plugin: 'java'
@@ -85,7 +85,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.squareup:javapoet:1.8.0'
     implementation 'io.jween.schizo:annotation:0.1'
-    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.code.gson:gson:2.8.5'
 }
 
 //sourceCompatibility = "1.7"

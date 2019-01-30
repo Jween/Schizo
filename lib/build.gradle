@@ -1,16 +1,17 @@
 plugins {
-    id "com.jfrog.bintray" version "1.8.0"
+    id "com.jfrog.bintray" version "1.8.4"
 }
+
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
 
@@ -31,7 +32,7 @@ import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.WorkResult;
 
 class AarCopyAction implements CopyAction {
@@ -45,7 +46,7 @@ class AarCopyAction implements CopyAction {
     public WorkResult execute(CopyActionProcessingStream stream) {
         FileCopyDetailsInternalAction action = new FileCopyDetailsInternalAction();
         stream.process(action);
-        return new SimpleWorkResult(action.didWork);
+        return WorkResults.didWork(action.didWork);
     }
 
     private class FileCopyDetailsInternalAction implements CopyActionProcessingStreamAction {
@@ -85,14 +86,14 @@ String prjDesc = 'Schizo is a simple IPC library for android.'
 publishing {
     publications {
         project.android.libraryVariants.all { variant ->
-
+            def javaCompile = variant.javaCompileProvider.get()
             // Javadocs task
             def javadocsTask
-            javadocsTask = project.task("${variant.name}Javadocs", type: Javadoc, dependsOn: variant.javaCompile) {
-                source = variant.javaCompile.source
+            javadocsTask = project.task("${variant.name}Javadocs", type: Javadoc, dependsOn: javaCompile) {
+                source = javaCompile.source
                 def androidJar = "${project.android.sdkDirectory}${File.separator}platforms${File.separator}${project.android.compileSdkVersion}${File.separator}android.jar"
                 def aidlFile = project.files("$project.buildDir/generated/source/aidl/$variant.name/")
-                classpath = project.files(variant.javaCompile.classpath.files, androidJar, aidlFile)
+                classpath = project.files(javaCompile.classpath.files, androidJar, aidlFile)
                 options {
                     charSet = 'UTF-8'
                     encoding = 'UTF-8'
@@ -114,11 +115,11 @@ publishing {
             // Sources jar task
             def sourcesJarTask = project.task("${variant.name}SourcesJar", type: Jar) {
                 classifier = 'sources'
-                from variant.javaCompile.source
+                from javaCompile.source
             }
 
             // Aar task
-            def aarTask = project.task("${variant.name}Aar", type: Aar, dependsOn: variant.assemble) {
+            def aarTask = project.task("${variant.name}Aar", type: Aar, dependsOn: variant.getAssembleProvider().get()) {
                 from "${project.buildDir}${File.separator}outputs${File.separator}aar${File.separator}${project.getName()}-release.aar"
             }
 
@@ -153,6 +154,7 @@ publishing {
                                 dependencyNode.appendNode('groupId', it.group)
                                 dependencyNode.appendNode('artifactId', it.name)
                                 dependencyNode.appendNode('version', it.version)
+                                println "groupId"
 
                                 //If there are any exclusions in dependency
                                 if (it.excludeRules.size() > 0) {
@@ -217,7 +219,7 @@ dependencies {
 
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
-    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.code.gson:gson:2.8.5'
 
 //    implementation project(':annotation')
     implementation 'io.jween.schizo:annotation:0.1'
