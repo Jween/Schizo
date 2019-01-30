@@ -1,3 +1,6 @@
+### Version 0.7 @ 2019-01-30
++ 更新依赖库版本
+
 ### Version 0.6 @ 2018-07-27
 + 删除无用日志
 + 重写 disposable 回收逻辑, 避免 CompositeDisposable 引起的内存膨胀
