@@ -19,7 +19,7 @@
 
 ````groovy
 annotationProcessor 'io.jween.schizo:processor:0.6'
-implementation 'io.jween.schizo:schizo:0.6'
+implementation 'io.jween.schizo:schizo:0.7'
 ````
 
 #### 代码
@@ -120,7 +120,7 @@ schizo 库的多线程处理, 以及接口返回是响应式的, 协议封装与
 ````groovy
 implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
-implementation 'com.google.code.gson:gson:2.8.2'
+implementation 'com.google.code.gson:gson:2.8.5'
 ````
     
 ## 里程碑与任务拆解
