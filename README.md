@@ -32,7 +32,7 @@ implementation 'io.jween.schizo:schizo:0.7'
 
 自动生成的接口类为 `TestServiceApi` (Service 的类名 + Api)
 
-## Proguard
+## Proguard (0.7 之后的版本已经添加到 aar，可以不用再手动添加)
 
 ````
 -keepclassmembers class * {
