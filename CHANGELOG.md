@@ -1,3 +1,7 @@
+### Veriosn 0.8 @ 2019-03-28
++ 修复 SchizoExceptions 内 cause 可能为空的 BUG
++ 更新 Rxjava 依赖库
+
 ### Version 0.7 @ 2019-01-30
 + 更新依赖库版本
 

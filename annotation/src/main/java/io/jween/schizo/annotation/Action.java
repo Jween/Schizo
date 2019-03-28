@@ -20,8 +20,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a {@linkplain SchizoService} child can be bound by this action
- * the action should also appear inside the <intent-filter> tag of the service.
+ * Indicates that a SchizoService child can be bound by this action
+ * the action should also appear inside the intent-filter tag of the service.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

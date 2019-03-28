@@ -21,7 +21,10 @@ public class SchizoExceptions {
     public static SchizoException from(Throwable throwable) {
         SchizoException exception;
         Throwable cause = throwable.getCause();
-        if (cause instanceof SchizoException) {
+        if (cause == null) {
+            exception = new SchizoException(
+                    SchizoResponse.CODE.ILLEGAL_ACCESS, "Unknown cause");
+        } else if (cause instanceof SchizoException) {
             exception = (SchizoException) cause;
         } else {
             exception = new SchizoException(
