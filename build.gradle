@@ -4,6 +4,16 @@ buildscript {
     repositories {
         jcenter()
         google()
+
+        //
+        // Repo mirrors for Chinese developers
+        // VISIT
+        // https://help.aliyun.com/document_detail/102512.html?spm=a2c40.aliyun_maven_repo.0.0.361865e97hlNjb
+        // for details
+        //
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.0'
@@ -15,6 +25,9 @@ allprojects {
         mavenLocal()
         jcenter()
         google()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
     }
 }
 
