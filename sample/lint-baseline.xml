@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 7.3.0" type="baseline" client="gradle" dependencies="false" name="AGP (7.3.0)" variant="all" version="7.3.0">
+
+    <issue
+        id="MissingConstraints"
+        message="This view is not constrained horizontally: at runtime it will jump to the left unless you add a horizontal constraint"
+        errorLine1="    &lt;Button"
+        errorLine2="     ~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="19"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="MissingConstraints"
+        message="This view is not constrained horizontally: at runtime it will jump to the left unless you add a horizontal constraint"
+        errorLine1="    &lt;Button"
+        errorLine2="     ~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="46"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="MissingConstraints"
+        message="This view is not constrained horizontally: at runtime it will jump to the left unless you add a horizontal constraint"
+        errorLine1="    &lt;Button"
+        errorLine2="     ~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="63"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="MissingConstraints"
+        message="This view is not constrained horizontally: at runtime it will jump to the left unless you add a horizontal constraint"
+        errorLine1="    &lt;Button"
+        errorLine2="     ~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="81"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="RedundantLabel"
+        message="Redundant label can be removed"
+        errorLine1="            android:label=&quot;@string/app_name&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="14"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.android.support.constraint:constraint-layout than 1.1.3 is available: 2.0.4"
+        errorLine1="    implementation fileTree(include: [&apos;*.jar&apos;], dir: &apos;libs&apos;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="29"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of junit:junit than 4.12 is available: 4.13.2"
+        errorLine1="        exclude group: &apos;com.android.support&apos;, module: &apos;support-annotations&apos;"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="31"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of io.reactivex.rxjava2:rxandroid than 2.1.0 is available: 2.1.1"
+        errorLine1="    implementation &apos;com.android.support.constraint:constraint-layout:1.1.3&apos;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="34"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of io.reactivex.rxjava2:rxjava than 2.2.7 is available: 2.2.9"
+        errorLine1="    implementation &apos;com.android.support:design:28.0.0&apos;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="35"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.code.gson:gson than 2.8.5 is available: 2.9.1"
+        errorLine1="    testImplementation &apos;junit:junit:4.12&apos;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="36"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of io.jween.schizo:annotation than 0.1 is available: 0.8"
+        errorLine1=""
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="37"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="IntentFilterExportedReceiver"
+        message="As of Android 12, `android:exported` must be set; use `true` to make the activity \&#xA;available to other apps, and `false` otherwise. For launcher activities, this should be set to `true`."
+        errorLine1="        &lt;activity"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="12"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="ExpiredTargetSdkVersion"
+        message="Google Play requires that apps target API level 31 or higher.&#xA;"
+        errorLine1="        targetSdkVersion 28"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="8"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.fab_margin` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;fab_margin&quot;>16dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="2"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.action_settings` appears to be unused"
+        errorLine1="    &lt;string name=&quot;action_settings&quot;>Settings&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="3"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.AppTheme_AppBarOverlay` appears to be unused"
+        errorLine1="    &lt;style name=&quot;AppTheme.AppBarOverlay&quot; parent=&quot;ThemeOverlay.AppCompat.Dark.ActionBar&quot; />"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/styles.xml"
+            line="16"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.AppTheme_PopupOverlay` appears to be unused"
+        errorLine1="    &lt;style name=&quot;AppTheme.PopupOverlay&quot; parent=&quot;ThemeOverlay.AppCompat.Light&quot; />"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/styles.xml"
+            line="18"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Person&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Person&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="24"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Book&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Book&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="33"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Observe Number&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Observe Number&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="42"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Book1&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Book1&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="51"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;NoParameter&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;NoParameter&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="59"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;TestException&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;TestException&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="68"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Books of Author&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Books of Author&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="76"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Observe Counter&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Observe Counter&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="86"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Dispose Counter&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Dispose Counter&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_main.xml"
+            line="95"
+            column="9"/>
+    </issue>
+
+</issues>

@@ -1,19 +1,12 @@
-plugins {
-    id "com.jfrog.bintray" version "1.8.4"
-}
-
-
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 33
 
         consumerProguardFiles 'proguard-rules.pro'
 
@@ -27,202 +20,26 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    namespace 'io.jween.schizo'
 
 }
-
-import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.internal.file.copy.CopyAction;
-import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
-import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
-import org.gradle.api.tasks.WorkResults;
-import org.gradle.api.tasks.WorkResult;
-
-class AarCopyAction implements CopyAction {
-
-    private final File archiveFile;
-
-    public AarCopyAction(File archiveFile) {
-        this.archiveFile = archiveFile
-    }
-
-    public WorkResult execute(CopyActionProcessingStream stream) {
-        FileCopyDetailsInternalAction action = new FileCopyDetailsInternalAction();
-        stream.process(action);
-        return WorkResults.didWork(action.didWork);
-    }
-
-    private class FileCopyDetailsInternalAction implements CopyActionProcessingStreamAction {
-        private boolean didWork;
-
-        private FileCopyDetailsInternalAction() {
-        }
-
-        public void processFile(FileCopyDetailsInternal details) {
-            boolean copied = details.copyTo(archiveFile);
-            if(copied) {
-                this.didWork = true;
-            }
-
-        }
-    }
-}
-
-class Aar extends AbstractArchiveTask {
-    public static final String AAR_EXTENSION = "aar";
-
-    public Aar() {
-        this.setExtension(AAR_EXTENSION);
-    }
-
-    @Override
-    protected CopyAction createCopyAction() {
-        new AarCopyAction(getArchivePath())
-    }
-}
-
 
 
 String prjName = 'schizo'
 String prjDesc = 'Schizo is a simple IPC library for android.'
 
-publishing {
-    publications {
-        project.android.libraryVariants.all { variant ->
-            def javaCompile = variant.javaCompileProvider.get()
-            // Javadocs task
-            def javadocsTask
-            javadocsTask = project.task("${variant.name}Javadocs", type: Javadoc, dependsOn: javaCompile) {
-                source = javaCompile.source
-                def androidJar = "${project.android.sdkDirectory}${File.separator}platforms${File.separator}${project.android.compileSdkVersion}${File.separator}android.jar"
-                def aidlFile = project.files("$project.buildDir/generated/source/aidl/$variant.name/")
-                classpath = project.files(javaCompile.classpath.files, androidJar, aidlFile)
-                options {
-                    charSet = 'UTF-8'
-                    encoding = 'UTF-8'
-                    links "http://docs.oracle.com/javase/8/docs/api/"
-//                    linksOffline "http://d.android.com/reference", "${project.android.sdkDirectory}${File.separator}docs${File.separator}reference"
-                }
-                failOnError false
-                exclude '**/BuildConfig.java'
-                exclude '**/R.java'
-                exclude '**/ISchizoBridgeInterface.java'
-            }
-
-            def javadocsJarTask = project.task("${variant.name}JavadocsJar", type: Jar, dependsOn: javadocsTask) {
-                classifier = 'javadoc'
-                from javadocsTask.destinationDir
-            }
-
-
-            // Sources jar task
-            def sourcesJarTask = project.task("${variant.name}SourcesJar", type: Jar) {
-                classifier = 'sources'
-                from javaCompile.source
-            }
-
-            // Aar task
-            def aarTask = project.task("${variant.name}Aar", type: Aar, dependsOn: variant.getAssembleProvider().get()) {
-                from "${project.buildDir}${File.separator}outputs${File.separator}aar${File.separator}${project.getName()}-release.aar"
-            }
-
-            // Dynamically creating publications name
-            "${variant.name}Maven"(MavenPublication) {
-                // Artifact properties
-                groupId schizo.group
-                version = schizo.version
-                artifactId variant.name == 'debug' ? prjName + '-beta' : prjName
-
-                // publish the artifacts required by bintray.(http://central.sonatype.org/pages/requirements.html)
-                artifact(aarTask)
-                artifact(javadocsJarTask)
-                artifact(sourcesJarTask)
-
-                pom.withXml {
-                    def root = asNode()
-                    root.appendNode('name', "${schizo.group}:$prjName")
-//                    root.appendNode('packaging', 'aar')
-                    root.appendNode('description', prjDesc)
-
-                    //Creating additional node for dependencies
-                    def dependenciesNode = asNode().appendNode('dependencies')
-
-                    // Defining configuration names from which dependencies will be taken (debugCompile or releaseCompile and compile)
-                    def configurationNames = ["${variant.name}Implementation", 'implementation']
-
-                    configurationNames.each { configurationName ->
-                        configurations[configurationName].allDependencies.each {
-                            if (it.group != null && it.name != null) {
-                                def dependencyNode = dependenciesNode.appendNode('dependency')
-                                dependencyNode.appendNode('groupId', it.group)
-                                dependencyNode.appendNode('artifactId', it.name)
-                                dependencyNode.appendNode('version', it.version)
-                                println "groupId"
-
-                                //If there are any exclusions in dependency
-                                if (it.excludeRules.size() > 0) {
-                                    def exclusionsNode = dependencyNode.appendNode('exclusions')
-                                    it.excludeRules.each { rule ->
-                                        def exclusionNode = exclusionsNode.appendNode('exclusion')
-                                        exclusionNode.appendNode('groupId', rule.group)
-                                        exclusionNode.appendNode('artifactId', rule.module)
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-
-                    root.children().last() + schizo.pomConfig
-                }
-            }
-        }
-    }
-}
-
-bintray {
-    user = schizo.bintray.user
-    key = schizo.bintray.apiKey
-
-    publications = ['releaseMaven']
-
-    pkg {
-        repo = 'maven'
-        name = "${schizo.group}:$prjName"
-        desc = prjDesc
-        userOrg = schizo.bintray.user
-        licenses = ['Apache-2.0']
-        websiteUrl = schizo.siteUrl
-        vcsUrl = schizo.gitUrl
-        issueTrackerUrl = schizo.issueTrackerUrl
-        labels = ['schizo']
-        publish = true
-        version {
-            name = schizo.version
-            desc = prjDesc
-            released  = new Date()
-            vcsTag = "${schizo.version}"
-            attributes = ['android-library': 'io.jween:io.jween.schizo:schizo']
-
-            gpg {
-                sign = true
-                passphrase = schizo.bintray.passphrase
-            }
-        }
-    }
-}
-
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.7'
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.9'
+    implementation 'com.google.code.gson:gson:2.9.1'
 
 //    implementation project(':annotation')
-    implementation 'io.jween.schizo:annotation:0.1'
+    implementation 'io.jween.schizo:annotation:0.8'
 }

@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "io.jween.schizo.sample"
         minSdkVersion 24
@@ -18,6 +17,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        baseline(file("lint-baseline.xml"))
+    }
+
+    namespace 'io.jween.schizo.sample'
 }
 
 dependencies {

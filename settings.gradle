@@ -1,1 +1,28 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        google()
+
+        //
+        // Repo mirrors for Chinese developers
+        // VISIT
+        // https://help.aliyun.com/document_detail/102512.html?spm=a2c40.aliyun_maven_repo.0.0.361865e97hlNjb
+        // for details
+        //
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        google()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    }
+}
+
 include ':sample', ':lib', ':annotation', ':processor', ':starbucks'
